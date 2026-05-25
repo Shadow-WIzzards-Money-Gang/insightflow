@@ -1,0 +1,109 @@
+classDiagram
+
+    class BaseEntity {
+        <<abstract>>
+        # UUID id
+        # LocalDateTime createdAt
+
+        # BaseEntity()
+        + getId() UUID
+        + getCreatedAt() LocalDateTime
+    }
+
+    class Autenticavel {
+        <<interface>>
+        + authenticate(senha) Boolean
+    }
+
+    class Usuario {
+        <<abstract>>
+        # String nome
+        # String email
+        # String senha
+
+        + getNome() String  
+        + getEmail() String
+
+        + getTipoUsuario() tipoUsuario*
+    }
+
+    class Vendedor {
+        + getTipoUsuario() tipoUsuario
+    }
+
+    class GerenteVendas {
+        + getTipoUsuario() tipoUsuario
+    }
+
+    class Reuniao {
+        - String transcricao
+        - Duration duracao
+        - LocalDateTime ocorreuEm
+        - GerenteVendas uploadedBy
+        
+        - String assunto
+        - SentimentoReuniao sentimentoReuniao
+        - RiscoCancelamento riscoCancelamento
+        - SegmentoCliente segmentoCliente
+
+        + Reuniao(String transcricao, LocalDateTime duracao, LocalDateTime ocorreuEm, GerenteVendas uploadedBy)
+        + getTranscricao() String
+        + getDuracao() Duration
+        + getOcorreuEm() LocalDateTime
+        + getUploadedBy() GerenteVendas
+        + getassunto() String
+        + getSentimentoReuniao() SentimentoReuniao
+        + getRiscoCancelamento() RiscoCancelamento
+        + getSegmentoCliente() SegmentoCliente
+    }
+
+    class SentimentoReuniao {
+        <<enumeration>>
+        POSITIVO,
+        NEUTRO,
+        NEGATIVO
+    }
+
+    class RiscoCancelamento {
+        <<enumeration>>
+        MUITO ALTO,
+        ALTO,
+        MODERADO,
+        BAIXO
+    }
+
+    class SegmentoCliente {
+        <<enumeration>>
+        SAUDE,
+        DISTRIBUICAO,
+        MANUFATURA,
+        SERVICOS,
+        CONSTRUCAO_E_PROJETOS,
+        EDUCACIONAL,
+        AGROINDUSTRIA,
+        LOGISTICA,
+        SUPERMERCADOS,
+        VAREJO,
+        NAO_IDENTIFICADO
+    }
+
+    class GeminiClient {
+        - String API_KEY
+        + analisarTranscricao(String transcricao) String
+    }
+
+    BaseEntity <|-- Usuario
+    BaseEntity <|-- Reuniao
+
+    Autenticavel <|-- Usuario
+
+    Usuario <|-- Vendedor
+    Usuario <|-- GerenteVendas
+
+    Reuniao ..> GerenteVendas
+
+    Reuniao ..> GeminiClient
+
+    Reuniao ..> SentimentoReuniao
+    Reuniao ..> RiscoCancelamento
+    Reuniao ..> SegmentoCliente
