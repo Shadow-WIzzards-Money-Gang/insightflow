@@ -1,7 +1,7 @@
 package com.bytestorm.insightflow.application.service;
 
 import com.bytestorm.insightflow.domain.valueobject.AnaliseReuniaoDTO;
-import com.bytestorm.insightflow.infra.ai.GeminiClient;
+import com.bytestorm.insightflow.infra.ai.GroqClient;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -61,14 +61,14 @@ public class AnalisarReuniaoService {
             "segmentoCliente": "..."
             }""";
 
-    private static GeminiClient geminiClient = GeminiClient.init(SYSTEM_PROMPT);
+    private static GroqClient groqClient = GroqClient.init(SYSTEM_PROMPT);
 
     public static AnaliseReuniaoDTO analisarTranscricao(String transcricao, Integer duracao) throws JsonMappingException, JsonProcessingException {
         if (duracao < DURACAO_MINIMA) {
             throw new IllegalArgumentException("A reunião é muito curta para análise.");
         }
 
-        String analise = geminiClient.generateContent(
+        String analise = groqClient.generateContent(
             """
             Analise a seguinte reunião comercial e identifique:
 
