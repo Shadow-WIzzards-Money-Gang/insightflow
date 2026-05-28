@@ -6,7 +6,7 @@ import com.bytestorm.insightflow.domain.exceptions.usuario.SenhaInvalidaExceptio
 
 public class Validator {
 
-    private static final String NOME_REGEX = "^[A-Za-zÀ-ÿ]+(?:\\\\s[A-Za-zÀ-ÿ]+)*$";
+    private static final String NOME_REGEX = "^[A-Za-zÀ-ÿ]+(?:\\s[A-Za-zÀ-ÿ]+)*$";
     private static final String EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
     private static final String SENHA_REGEX = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
 

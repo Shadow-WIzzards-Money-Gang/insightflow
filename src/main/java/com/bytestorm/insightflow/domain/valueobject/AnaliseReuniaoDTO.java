@@ -1,6 +1,7 @@
 package com.bytestorm.insightflow.domain.valueobject;
 
 import com.bytestorm.insightflow.domain.entity.AnaliseReuniao;
+import com.bytestorm.insightflow.domain.entity.Reuniao;
 
 public record AnaliseReuniaoDTO(
     String assunto,
@@ -9,8 +10,7 @@ public record AnaliseReuniaoDTO(
     String segmentoCliente
 ) {
 
-    public AnaliseReuniao toEntity() {
-        return new AnaliseReuniao(this);
+    public AnaliseReuniao toEntity(Reuniao reuniao) {
+        return new AnaliseReuniao(this, reuniao);
     }
-
 }
