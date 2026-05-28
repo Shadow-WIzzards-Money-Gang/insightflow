@@ -2,6 +2,7 @@ package com.bytestorm.insightflow.domain.entity;
 
 import com.bytestorm.insightflow.domain.enums.TipoUsuario;
 import com.bytestorm.insightflow.domain.interfaces.Autenticavel;
+import com.bytestorm.insightflow.utils.Validator;
 
 public abstract class Usuario extends BaseEntity implements Autenticavel {
     private String nome;
@@ -10,6 +11,11 @@ public abstract class Usuario extends BaseEntity implements Autenticavel {
 
     public Usuario(String nome, String email, String senha) {
         super();
+
+        Validator.validarNome(nome);
+        Validator.validarEmail(email);
+        Validator.validarSenha(senha);
+
         this.nome = nome;
         this.email = email;
         this.senha = senha;
