@@ -1,10 +1,7 @@
 package com.bytestorm.insightflow.application.service;
 
-import com.bytestorm.insightflow.domain.valueobject.AnaliseReuniaoDTO;
+import com.bytestorm.insightflow.domain.exceptions.analise.ReuniaoCurtaException;
 import com.bytestorm.insightflow.infra.ai.GroqClient;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class AnalisarReuniaoService {
     private static final Integer DURACAO_MINIMA = 10; // minutos
@@ -61,14 +58,21 @@ public class AnalisarReuniaoService {
             "segmentoCliente": "..."
             }""";
 
-    private static GroqClient groqClient = GroqClient.init(SYSTEM_PROMPT);
+    private static GroqClient groqClient;
 
-    public static AnaliseReuniaoDTO analisarTranscricao(String transcricao, Integer duracao) throws JsonMappingException, JsonProcessingException {
+    private static GroqClient getGroqClient() {
+        if (groqClient == null) {
+            groqClient = GroqClient.init(SYSTEM_PROMPT);
+        }
+        return groqClient;
+    }
+
+    public static String analisarTranscricao(String transcricao, Integer duracao) {
         if (duracao < DURACAO_MINIMA) {
-            throw new IllegalArgumentException("A reunião é muito curta para análise.");
+            throw new ReuniaoCurtaException();
         }
 
-        String analise = groqClient.generateContent(
+        String analise = getGroqClient().generateContent(
             """
             Analise a seguinte reunião comercial e identifique:
 
@@ -84,17 +88,6 @@ public class AnalisarReuniaoService {
             """.formatted(transcricao)
         );
 
-            return parseAnalise(analise);
-    } 
-
-    private static AnaliseReuniaoDTO parseAnalise(String texto) throws JsonMappingException, JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-
-        AnaliseReuniaoDTO analise =
-            mapper.readValue(
-                texto,
-                AnaliseReuniaoDTO.class
-            );
         return analise;
-    }
+    } 
 }
