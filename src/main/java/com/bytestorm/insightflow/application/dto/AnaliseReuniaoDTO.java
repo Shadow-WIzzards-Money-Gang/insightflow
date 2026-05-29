@@ -1,4 +1,4 @@
-package com.bytestorm.insightflow.domain.valueobject;
+package com.bytestorm.insightflow.application.dto;
 
 import com.bytestorm.insightflow.domain.entity.AnaliseReuniao;
 import com.bytestorm.insightflow.domain.entity.Reuniao;

@@ -1,11 +1,11 @@
 package com.bytestorm.insightflow.domain.entity;
 
+import com.bytestorm.insightflow.application.dto.AnaliseReuniaoDTO;
 import com.bytestorm.insightflow.application.service.AnalisarReuniaoService;
 import com.bytestorm.insightflow.domain.enums.ProdutoTotvs;
 import com.bytestorm.insightflow.domain.enums.RiscoCancelamento;
 import com.bytestorm.insightflow.domain.enums.SegmentoCliente;
 import com.bytestorm.insightflow.domain.enums.SentimentoReuniao;
-import com.bytestorm.insightflow.domain.valueobject.AnaliseReuniaoDTO;
 import com.bytestorm.insightflow.utils.Mapper;
 
 public class AnaliseReuniao {

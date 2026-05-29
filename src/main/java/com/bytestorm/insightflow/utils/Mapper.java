@@ -1,7 +1,7 @@
 package com.bytestorm.insightflow.utils;
 
+import com.bytestorm.insightflow.application.dto.AnaliseReuniaoDTO;
 import com.bytestorm.insightflow.domain.exceptions.analise.FalhaAnaliseTranscricaoException;
-import com.bytestorm.insightflow.domain.valueobject.AnaliseReuniaoDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

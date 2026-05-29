@@ -12,12 +12,13 @@ import com.bytestorm.insightflow.domain.exceptions.ai.InstrucaoInvalidaException
 import com.bytestorm.insightflow.domain.exceptions.ai.LimiteDeRequisicoesExcedidoException;
 import com.bytestorm.insightflow.domain.exceptions.ai.PromptInvalidoException;
 import com.bytestorm.insightflow.domain.exceptions.ai.RespostaInvalidaException;
+import com.bytestorm.insightflow.domain.interfaces.AiClient;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
 import java.io.IOException;
 
-public class GroqClient {
+public class GroqClient implements AiClient {
 
     private static GroqClient instance;
 
@@ -62,6 +63,7 @@ public class GroqClient {
         return instance;
     }
 
+    @Override
     public String generateContent(String prompt) {
 
         if (prompt == null || prompt.isBlank()) {

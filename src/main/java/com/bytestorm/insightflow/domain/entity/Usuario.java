@@ -1,10 +1,9 @@
 package com.bytestorm.insightflow.domain.entity;
 
 import com.bytestorm.insightflow.domain.enums.TipoUsuario;
-import com.bytestorm.insightflow.domain.interfaces.Autenticavel;
 import com.bytestorm.insightflow.utils.Validator;
 
-public abstract class Usuario extends BaseEntity implements Autenticavel {
+public abstract class Usuario extends BaseEntity {
     private String nome;
     private String email;
     private String senha;
@@ -23,7 +22,6 @@ public abstract class Usuario extends BaseEntity implements Autenticavel {
 
     public abstract TipoUsuario getTipoUsuario();
 
-    @Override
     public Boolean autenticar(String senha) {
         return this.senha.equals(senha);
     }
