@@ -30,7 +30,13 @@ public class GroqClient {
     private final String instruction;
 
     public GroqClient(String instruction) {
-        Dotenv dotenv = Dotenv.load();
+        Dotenv dotenv;
+
+        try {
+            dotenv = Dotenv.load();
+        } catch (Exception e) {
+            throw new ChaveApiNaoEncontradaException();
+        }
 
         this.API_KEY = dotenv.get("GROQ_API_KEY");
         this.instruction = instruction;
