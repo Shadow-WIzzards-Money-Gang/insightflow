@@ -1,38 +1,35 @@
 classDiagram
 
     class BaseEntity {
-        <<abstract>>
-        # UUID id
-        # LocalDateTime createdAt
+        - UUID id
+        - LocalDateTime criadoEm
 
-        # BaseEntity()
+        + BaseEntity()
         + getId() UUID
-        + getCreatedAt() LocalDateTime
-    }
-
-    class Autenticavel {
-        <<interface>>
-        + authenticate(senha) Boolean
+        + getCriadoEm() LocalDateTime
     }
 
     class Usuario {
         <<abstract>>
-        # String nome
-        # String email
-        # String senha
+        - String nome
+        - String email
+        - String senha
 
-        + getNome() String  
+        + Usuario(String nome, String email, String senha)
+        + autenticar(String senha) Boolean
+        + getNome() String
         + getEmail() String
-
-        + getTipoUsuario() tipoUsuario*
+        + getTipoUsuario()* TipoUsuario
     }
 
     class Vendedor {
-        + getTipoUsuario() tipoUsuario
+        + Vendedor(String nome, String email, String senha)
+        + getTipoUsuario() TipoUsuario
     }
 
     class GerenteVendas {
-        + getTipoUsuario() tipoUsuario
+        + GerenteVendas(String nome, String email, String senha)
+        + getTipoUsuario() TipoUsuario
     }
 
     class Reuniao {
@@ -40,21 +37,38 @@ classDiagram
         - Duration duracao
         - LocalDateTime ocorreuEm
         - GerenteVendas uploadedBy
-        
-        - String assunto
-        - SentimentoReuniao sentimentoReuniao
-        - RiscoCancelamento riscoCancelamento
-        - SegmentoCliente segmentoCliente
 
-        + Reuniao(String transcricao, LocalDateTime duracao, LocalDateTime ocorreuEm, GerenteVendas uploadedBy)
+        + Reuniao(String transcricao, Duration duracao, LocalDateTime ocorreuEm, GerenteVendas uploadedBy)
         + getTranscricao() String
         + getDuracao() Duration
         + getOcorreuEm() LocalDateTime
         + getUploadedBy() GerenteVendas
-        + getassunto() String
+        + equals(Object o) boolean
+    }
+
+    class AnaliseReuniao {
+        - String assunto
+        - SentimentoReuniao sentimentoReuniao
+        - RiscoCancelamento riscoCancelamento
+        - SegmentoCliente segmentoCliente
+        - ProdutoTotvs produtoTotvs
+        - Reuniao reuniao
+
+        + AnaliseReuniao(Reuniao reuniao)
+        + AnaliseReuniao(AnaliseReuniaoDTO analiseReuniaoDTO, Reuniao reuniao)
+        + getAssunto() String
         + getSentimentoReuniao() SentimentoReuniao
         + getRiscoCancelamento() RiscoCancelamento
         + getSegmentoCliente() SegmentoCliente
+        + getProdutoTotvs() ProdutoTotvs
+        + getReuniao() Reuniao
+        + equals(Object o) boolean
+    }
+
+    class TipoUsuario {
+        <<enumeration>>
+        VENDEDOR,
+        GERENTE_VENDAS
     }
 
     class SentimentoReuniao {
@@ -66,7 +80,7 @@ classDiagram
 
     class RiscoCancelamento {
         <<enumeration>>
-        MUITO ALTO,
+        MUITO_ALTO,
         ALTO,
         MODERADO,
         BAIXO
@@ -87,23 +101,36 @@ classDiagram
         NAO_IDENTIFICADO
     }
 
-    class GeminiClient {
-        - String API_KEY
-        + analisarTranscricao(String transcricao) String
+    class ProdutoTotvs {
+        <<enumeration>>
+        PROTHEUS,
+        RM,
+        DATASUL,
+        LOGIX,
+        RH_CLOCK_IN,
+        RH_PERFORMANCE,
+        RD_STATION,
+        TOTVS_ASSINATURA,
+        TOTVS_ANALYTICS,
+        FLUIG,
+        TOTVS_AUTOMACAO_FISCAL,
+        EDUCACAO,
+        NAO_IDENTIFICADO
     }
 
     BaseEntity <|-- Usuario
     BaseEntity <|-- Reuniao
 
-    Autenticavel <|-- Usuario
-
     Usuario <|-- Vendedor
     Usuario <|-- GerenteVendas
 
-    Reuniao ..> GerenteVendas
+    Usuario ..> TipoUsuario
 
-    Reuniao ..> GeminiClient
+    Reuniao "1" --> "1" GerenteVendas : uploadedBy
 
-    Reuniao ..> SentimentoReuniao
-    Reuniao ..> RiscoCancelamento
-    Reuniao ..> SegmentoCliente
+    AnaliseReuniao "1" --> "1" Reuniao : reuniao
+
+    AnaliseReuniao ..> SentimentoReuniao
+    AnaliseReuniao ..> RiscoCancelamento
+    AnaliseReuniao ..> SegmentoCliente
+    AnaliseReuniao ..> ProdutoTotvs
