@@ -33,4 +33,15 @@ public class Reuniao extends BaseEntity {
     public GerenteVendas getUploadedBy() {
         return uploadedBy;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+        
+        Reuniao that = (Reuniao) o;
+
+        return this.getTranscricao().equals(that.getTranscricao());
+    }
 }
