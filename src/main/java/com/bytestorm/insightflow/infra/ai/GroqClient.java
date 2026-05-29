@@ -4,17 +4,19 @@ import okhttp3.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.bytestorm.insightflow.config.ApplicationProperties;
+import com.bytestorm.insightflow.domain.exceptions.ai.ApiUrlNaoEncontradaException;
 import com.bytestorm.insightflow.domain.exceptions.ai.ChaveApiNaoEncontradaException;
 import com.bytestorm.insightflow.domain.exceptions.ai.ChaveDeApiInvalidaException;
 import com.bytestorm.insightflow.domain.exceptions.ai.ErroInesperadoApiException;
 import com.bytestorm.insightflow.domain.exceptions.ai.ErroInternoDaApiException;
 import com.bytestorm.insightflow.domain.exceptions.ai.InstrucaoInvalidaException;
 import com.bytestorm.insightflow.domain.exceptions.ai.LimiteDeRequisicoesExcedidoException;
+import com.bytestorm.insightflow.domain.exceptions.ai.ModeloIaNaoEncontradoException;
 import com.bytestorm.insightflow.domain.exceptions.ai.PromptInvalidoException;
 import com.bytestorm.insightflow.domain.exceptions.ai.RespostaInvalidaException;
+import com.bytestorm.insightflow.domain.exceptions.ai.TemperaturaInvalidaException;
 import com.bytestorm.insightflow.domain.interfaces.AiClient;
-
-import io.github.cdimascio.dotenv.Dotenv;
 
 import java.io.IOException;
 
@@ -22,24 +24,22 @@ public class GroqClient implements AiClient {
 
     private static GroqClient instance;
 
-    private final String MODEL_NAME = "llama-3.3-70b-versatile";
-    private final String API_URL = "https://api.groq.com/openai/v1/chat/completions";
+    private final String MODEL_NAME;
+    private final String API_URL;
     private final String API_KEY;
+    private final Double TEMPERATURE;
 
     private final OkHttpClient client;
 
     private final String instruction;
 
     public GroqClient(String instruction) {
-        Dotenv dotenv;
 
-        try {
-            dotenv = Dotenv.load();
-        } catch (Exception e) {
-            throw new ChaveApiNaoEncontradaException();
-        }
+        this.API_URL = ApplicationProperties.getInstance().get("ai.url");
+        this.MODEL_NAME = ApplicationProperties.getInstance().get("ai.model");
+        this.API_KEY = ApplicationProperties.getInstance().get("ai.api.key");
+        this.TEMPERATURE = Double.parseDouble(ApplicationProperties.getInstance().get("ai.temperature"));
 
-        this.API_KEY = dotenv.get("GROQ_API_KEY");
         this.instruction = instruction;
 
         this.validarConfiguracao();
@@ -47,8 +47,20 @@ public class GroqClient implements AiClient {
     }
 
     private void validarConfiguracao() {
+        if (this.API_URL == null || this.API_URL.isBlank()) {
+            throw new ApiUrlNaoEncontradaException();
+        }
+        
         if (this.API_KEY == null || this.API_KEY.isEmpty()) {
             throw new ChaveApiNaoEncontradaException();
+        }
+
+        if (this.MODEL_NAME == null || this.MODEL_NAME.isBlank()) {
+            throw new ModeloIaNaoEncontradoException();
+        }
+
+        if (this.TEMPERATURE == null) {
+            throw new TemperaturaInvalidaException();
         }
 
         if (this.instruction == null || this.instruction.isBlank()) {
@@ -145,7 +157,7 @@ public class GroqClient implements AiClient {
         
         return new JSONObject()
                 .put("model", MODEL_NAME)
-                .put("temperature", 0.1)
+                .put("temperature", TEMPERATURE)
                 .put("messages", messages);
     }
 }
