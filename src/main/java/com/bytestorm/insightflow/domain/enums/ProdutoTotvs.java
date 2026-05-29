@@ -9,7 +9,7 @@ public enum ProdutoTotvs {
     LOGIX("Logix", "ERP"),
 
     // RH
-    RH_CLOCKIN("RH Clock In", "RH"),
+    RH_CLOCK_IN("RH Clock In", "RH"),
     RH_PERFORMANCE("RH Performance", "RH"),
 
     // CRM e Vendas
@@ -51,10 +51,10 @@ public enum ProdutoTotvs {
 
     public static ProdutoTotvs fromDescricao(String descricao) {
         for (ProdutoTotvs produto : ProdutoTotvs.values()) {
-            if (produto.getDescricao().equalsIgnoreCase(descricao.replace(" ", "_"))) {
+            if (produto.getDescricao().replace(" ", "_").equalsIgnoreCase(descricao.replace(" ", "_"))) {
                 return produto;
             }
         }
-        return null;
+        return NAO_IDENTIFICADO;
     }
 }

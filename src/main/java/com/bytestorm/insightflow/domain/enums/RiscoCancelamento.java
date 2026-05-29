@@ -19,7 +19,7 @@ public enum RiscoCancelamento {
 
     public static RiscoCancelamento fromDescricao(String descricao) {
         for (RiscoCancelamento risco : RiscoCancelamento.values()) {
-            if (risco.getDescricao().equalsIgnoreCase(descricao.replace(" ", "_"))) {
+            if (risco.getDescricao().replace(" ", "_").equalsIgnoreCase(descricao.replace(" ", "_"))) {
                 return risco;
             }
         }

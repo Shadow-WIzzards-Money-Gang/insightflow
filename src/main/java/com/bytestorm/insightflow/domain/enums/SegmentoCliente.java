@@ -25,10 +25,10 @@ public enum SegmentoCliente {
 
     public static SegmentoCliente fromDescricao(String descricao) {
         for (SegmentoCliente segmento : SegmentoCliente.values()) {
-            if (segmento.getDescricao().equalsIgnoreCase(descricao.replace(" ", "_"))) {
+            if (segmento.getDescricao().replace(" ", "_").equalsIgnoreCase(descricao.replace(" ", "_"))) {
                 return segmento;
             }
         }
-        return null;
+        return NAO_IDENTIFICADO;
     }
 }

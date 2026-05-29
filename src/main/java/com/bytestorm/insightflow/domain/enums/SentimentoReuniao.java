@@ -18,7 +18,7 @@ public enum SentimentoReuniao {
 
     public static SentimentoReuniao fromDescricao(String descricao) {
         for (SentimentoReuniao sentimento : SentimentoReuniao.values()) {
-            if (sentimento.getDescricao().equalsIgnoreCase(descricao)) {
+            if (sentimento.getDescricao().replace(" ", "_").equalsIgnoreCase(descricao.replace(" ", "_"))) {
                 return sentimento;
             }
         }
