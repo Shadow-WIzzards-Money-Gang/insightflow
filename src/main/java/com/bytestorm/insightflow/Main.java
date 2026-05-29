@@ -29,6 +29,7 @@ public class Main {
             System.out.println("Sentimento geral: " + analiseReuniao.getSentimentoReuniao());
             System.out.println("Risco de cancelamento: " + analiseReuniao.getRiscoCancelamento());
             System.out.println("Segmento do cliente: " + analiseReuniao.getSegmentoCliente());
+            System.out.println("Produto TOTVS: " + analiseReuniao.getProdutoTotvs());
         } catch (RuntimeException e) {
             System.out.println(e.getMessage());
         }

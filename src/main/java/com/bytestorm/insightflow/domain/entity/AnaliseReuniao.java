@@ -1,6 +1,7 @@
 package com.bytestorm.insightflow.domain.entity;
 
 import com.bytestorm.insightflow.application.service.AnalisarReuniaoService;
+import com.bytestorm.insightflow.domain.enums.ProdutoTotvs;
 import com.bytestorm.insightflow.domain.enums.RiscoCancelamento;
 import com.bytestorm.insightflow.domain.enums.SegmentoCliente;
 import com.bytestorm.insightflow.domain.enums.SentimentoReuniao;
@@ -12,6 +13,7 @@ public class AnaliseReuniao {
     private SentimentoReuniao sentimentoReuniao;
     private RiscoCancelamento riscoCancelamento;
     private SegmentoCliente segmentoCliente;
+    private ProdutoTotvs produtoTotvs;
 
     private Reuniao reuniao;
 
@@ -25,6 +27,7 @@ public class AnaliseReuniao {
         this.sentimentoReuniao = SentimentoReuniao.fromDescricao(analiseDTO.sentimentoReuniao());
         this.riscoCancelamento = RiscoCancelamento.fromDescricao(analiseDTO.riscoCancelamento());
         this.segmentoCliente = SegmentoCliente.fromDescricao(analiseDTO.segmentoCliente());
+        this.produtoTotvs = ProdutoTotvs.fromDescricao(analiseDTO.produtoTotvs());
     }
 
     public AnaliseReuniao(AnaliseReuniaoDTO analiseReuniaoDTO, Reuniao reuniao) {
@@ -32,6 +35,8 @@ public class AnaliseReuniao {
         this.sentimentoReuniao = SentimentoReuniao.fromDescricao(analiseReuniaoDTO.sentimentoReuniao());
         this.riscoCancelamento = RiscoCancelamento.fromDescricao(analiseReuniaoDTO.riscoCancelamento());
         this.segmentoCliente = SegmentoCliente.fromDescricao(analiseReuniaoDTO.segmentoCliente());
+        this.produtoTotvs = ProdutoTotvs.fromDescricao(analiseReuniaoDTO.produtoTotvs());
+
         this.reuniao = reuniao;
     }
 
@@ -49,6 +54,10 @@ public class AnaliseReuniao {
 
     public SegmentoCliente getSegmentoCliente() {
         return segmentoCliente;
+    }
+
+    public ProdutoTotvs getProdutoTotvs() {
+        return produtoTotvs;
     }
 
     public Reuniao getReuniao() {

@@ -7,7 +7,8 @@ public record AnaliseReuniaoDTO(
     String assunto,
     String sentimentoReuniao,
     String riscoCancelamento,
-    String segmentoCliente
+    String segmentoCliente,
+    String produtoTotvs
 ) {
 
     public AnaliseReuniao toEntity(Reuniao reuniao) {

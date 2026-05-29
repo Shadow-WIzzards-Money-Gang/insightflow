@@ -14,6 +14,7 @@ public class AnalisarReuniaoService {
             - sentimento geral
             - risco de cancelamento do cliente
             - segmento do cliente
+            - produto totvs
 
             Você DEVE retornar APENAS JSON válido.
 
@@ -49,13 +50,29 @@ public class AnalisarReuniaoService {
             - VAREJO
             - NAO_IDENTIFICADO
 
+            ProdutoTotvs:
+            - PROTHEUS
+            - RM
+            - DATASUL
+            - LOGIX
+            - RH_CLOCK_IN
+            - RH_PERFORMANCE
+            - RD_STATION
+            - TOTVS_ASSINATURA_ELETRONICA
+            - TOTVS_ANALYTICS
+            - FLUIG
+            - TOTVS_AUTOMACAO_FISCAL
+            - TOTVS_EDUCACIONAL
+            - NAO_IDENTIFICADO
+
             O JSON deve seguir EXATAMENTE este formato:
 
             {
             "assunto": "...",
             "sentimentoReuniao": "...",
             "riscoCancelamento": "...",
-            "segmentoCliente": "..."
+            "segmentoCliente": "...",
+            "produtoTotvs": "..."
             }""";
 
     private static GroqClient groqClient;
