@@ -18,6 +18,8 @@ public class ReuniaoRepository implements Repository<Reuniao, UUID> {
 
     private ReuniaoRepository() {
         this.reunioes = new ArrayList<>();
+
+        
     }
 
     public static ReuniaoRepository getInstance() {
