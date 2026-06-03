@@ -3,25 +3,26 @@ package com.bytestorm.insightflow.infra.repository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import com.bytestorm.insightflow.domain.entity.Usuario;
 import com.bytestorm.insightflow.domain.exceptions.usuario.UsuarioInvalidoException;
 import com.bytestorm.insightflow.domain.exceptions.usuarioRepository.EmailJaCadastradoException;
-import com.bytestorm.insightflow.domain.interfaces.UsuarioRepository;
+import com.bytestorm.insightflow.domain.interfaces.Repository;
 
-public class UsuarioRepositoryImpl implements UsuarioRepository {
+public class UsuarioRepository implements Repository<Usuario, UUID> {
 
-    private static UsuarioRepositoryImpl instance;
+    private static UsuarioRepository instance;
 
     private List<Usuario> usuarios;
 
-    private UsuarioRepositoryImpl() {
+    private UsuarioRepository() {
         this.usuarios = new ArrayList<>();
     }
 
-    public static UsuarioRepositoryImpl getInstance() {
+    public static UsuarioRepository getInstance() {
         if (instance == null) {
-            instance = new UsuarioRepositoryImpl();
+            instance = new UsuarioRepository();
         }
         return instance;
     }
@@ -50,6 +51,12 @@ public class UsuarioRepositoryImpl implements UsuarioRepository {
     }
 
     @Override
+    public Optional<Usuario> findById(UUID id) {
+        return this.usuarios.stream()
+                .filter(usuario -> usuario.getId().equals(id))
+                .findFirst();
+    }
+
     public Optional<Usuario> findByEmail(String email) {
         return this.usuarios.stream()
                 .filter(usuario -> usuario.getEmail().equals(email))

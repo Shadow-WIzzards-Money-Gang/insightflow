@@ -8,21 +8,21 @@ import java.util.UUID;
 import com.bytestorm.insightflow.domain.entity.Reuniao;
 import com.bytestorm.insightflow.domain.exceptions.reuniaoRepository.ReuniaoInvalidaException;
 import com.bytestorm.insightflow.domain.exceptions.reuniaoRepository.ReuniaoJaCadastradaException;
-import com.bytestorm.insightflow.domain.interfaces.ReuniaoRepository;
+import com.bytestorm.insightflow.domain.interfaces.Repository;
 
-public class ReuniaoRepositoryImpl implements ReuniaoRepository {
+public class ReuniaoRepository implements Repository<Reuniao, UUID> {
 
-    private static ReuniaoRepositoryImpl instance;
+    private static ReuniaoRepository instance;
 
     private List<Reuniao> reunioes;
 
-    private ReuniaoRepositoryImpl() {
+    private ReuniaoRepository() {
         this.reunioes = new ArrayList<>();
     }
 
-    public static ReuniaoRepositoryImpl getInstance() {
+    public static ReuniaoRepository getInstance() {
         if (instance == null) {
-            instance = new ReuniaoRepositoryImpl();
+            instance = new ReuniaoRepository();
         }
         return instance;
     }
@@ -58,5 +58,4 @@ public class ReuniaoRepositoryImpl implements ReuniaoRepository {
                 .filter(r -> r.getId().equals(id))
                 .findFirst();
     }
-
 }
