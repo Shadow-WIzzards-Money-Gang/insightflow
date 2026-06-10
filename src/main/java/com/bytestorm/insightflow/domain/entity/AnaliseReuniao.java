@@ -8,7 +8,7 @@ import com.bytestorm.insightflow.domain.enums.SegmentoCliente;
 import com.bytestorm.insightflow.domain.enums.SentimentoReuniao;
 import com.bytestorm.insightflow.utils.Mapper;
 
-public class AnaliseReuniao {
+public class AnaliseReuniao extends BaseEntity {
     private String assunto;
     private SentimentoReuniao sentimentoReuniao;
     private RiscoCancelamento riscoCancelamento;
@@ -18,9 +18,11 @@ public class AnaliseReuniao {
     private Reuniao reuniao;
 
     public AnaliseReuniao(Reuniao reuniao) {
+        super();
         this.reuniao = reuniao;
 
-        String analise = AnalisarReuniaoService.analisarTranscricao(reuniao.getTranscricao(), (int) reuniao.getDuracao().toMinutes());
+        String analise = AnalisarReuniaoService.analisarTranscricao(reuniao.getTranscricao(),
+                (int) reuniao.getDuracao().toMinutes());
         AnaliseReuniaoDTO analiseDTO = Mapper.parseAnalise(analise);
 
         this.assunto = analiseDTO.assunto();
@@ -31,6 +33,7 @@ public class AnaliseReuniao {
     }
 
     public AnaliseReuniao(AnaliseReuniaoDTO analiseReuniaoDTO, Reuniao reuniao) {
+        super();
         this.assunto = analiseReuniaoDTO.assunto();
         this.sentimentoReuniao = SentimentoReuniao.fromDescricao(analiseReuniaoDTO.sentimentoReuniao());
         this.riscoCancelamento = RiscoCancelamento.fromDescricao(analiseReuniaoDTO.riscoCancelamento());
@@ -66,9 +69,11 @@ public class AnaliseReuniao {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
+        if (this == o)
+            return true;
 
-        if (o == null || getClass() != o.getClass()) return false;
+        if (o == null || getClass() != o.getClass())
+            return false;
 
         AnaliseReuniao that = (AnaliseReuniao) o;
 

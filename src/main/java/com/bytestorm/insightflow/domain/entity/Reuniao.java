@@ -7,9 +7,9 @@ public class Reuniao extends BaseEntity {
     private String transcricao;
     private Duration duracao;
     private LocalDateTime ocorreuEm;
-    private GerenteVendas uploadedBy;
+    private Colaborador uploadedBy;
 
-    public Reuniao(String transcricao, Duration duracao, LocalDateTime ocorreuEm, GerenteVendas uploadedBy) {
+    public Reuniao(String transcricao, Duration duracao, LocalDateTime ocorreuEm, Colaborador uploadedBy) {
         super();
 
         this.transcricao = transcricao;
@@ -30,7 +30,7 @@ public class Reuniao extends BaseEntity {
         return ocorreuEm;
     }
 
-    public GerenteVendas getUploadedBy() {
+    public Colaborador getUploadedBy() {
         return uploadedBy;
     }
 

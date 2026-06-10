@@ -3,7 +3,7 @@ package com.bytestorm.insightflow.domain.entity;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public class BaseEntity {
+public abstract class BaseEntity {
     private UUID id;
     private LocalDateTime criadoEm;
 
