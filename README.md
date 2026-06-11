@@ -19,6 +19,13 @@ O **InsightFlow** é uma solução avançada para análise de reuniões comercia
 - **Mapeamento de Produtos**: Identifica quais soluções TOTVS foram mencionadas ou são relevantes.
 - **Interface Interativa**: Menu CLI amigável para navegação e operações.
 
+## 📄 Transcrições de Teste
+
+Para facilitar o teste da aplicação, disponibilizamos um conjunto de transcrições reais (anonimizadas) que podem ser utilizadas como entrada.
+- **Localização**: `docs/transcricoes.json`
+- **Uso**: Você pode copiar o conteúdo destas transcrições e colá-lo na aplicação quando solicitado.
+
+
 ## 🛠️ Tecnologias Utilizadas
 
 - **Java 21**: Linguagem base do projeto.
