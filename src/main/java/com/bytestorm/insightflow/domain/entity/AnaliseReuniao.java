@@ -68,6 +68,18 @@ public class AnaliseReuniao extends BaseEntity {
     }
 
     @Override
+    public String toString() {
+        return String.format("ID: %s | Reuniao ID: %s | Assunto: %s | Sentimento: %s | Risco: %s | Segmento: %s | Produto: %s",
+                this.getId(),
+                this.reuniao.getId(),
+                this.assunto,
+                this.sentimentoReuniao.getDescricao(),
+                this.riscoCancelamento.getDescricao(),
+                this.segmentoCliente.getDescricao(),
+                this.produtoTotvs.getDescricao());
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o)
             return true;

@@ -3,14 +3,13 @@ package com.bytestorm.insightflow.infra.repository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import com.bytestorm.insightflow.domain.entity.Colaborador;
 import com.bytestorm.insightflow.domain.exceptions.usuario.UsuarioInvalidoException;
 import com.bytestorm.insightflow.domain.exceptions.usuarioRepository.EmailJaCadastradoException;
 import com.bytestorm.insightflow.domain.interfaces.Repository;
 
-public class ColaboradorRepository implements Repository<Colaborador, UUID> {
+public class ColaboradorRepository implements Repository<Colaborador, String> {
 
     private static ColaboradorRepository instance;
 
@@ -51,7 +50,7 @@ public class ColaboradorRepository implements Repository<Colaborador, UUID> {
     }
 
     @Override
-    public Optional<Colaborador> findById(UUID id) {
+    public Optional<Colaborador> findById(String id) {
         return this.colaboradores.stream()
                 .filter(colaborador -> colaborador.getId().equals(id))
                 .findFirst();

@@ -1,15 +1,15 @@
 package com.bytestorm.insightflow.domain.entity;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 public class Reuniao extends BaseEntity {
     private String transcricao;
     private Duration duracao;
-    private LocalDateTime ocorreuEm;
-    private Colaborador uploadedBy;
+    private LocalDate ocorreuEm;
+    private GerenteVendas uploadedBy;
 
-    public Reuniao(String transcricao, Duration duracao, LocalDateTime ocorreuEm, Colaborador uploadedBy) {
+    public Reuniao(String transcricao, Duration duracao, LocalDate ocorreuEm, GerenteVendas uploadedBy) {
         super();
 
         this.transcricao = transcricao;
@@ -26,12 +26,22 @@ public class Reuniao extends BaseEntity {
         return duracao;
     }
 
-    public LocalDateTime getOcorreuEm() {
+    public LocalDate getOcorreuEm() {
         return ocorreuEm;
     }
 
-    public Colaborador getUploadedBy() {
+    public GerenteVendas getUploadedBy() {
         return uploadedBy;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("ID: %s | Transcrição: %s... | Duração: %s min | Data: %s | Uploaded by: %s", 
+        this.getId(),
+        this.transcricao.substring(0, 20),
+        this.duracao.toMinutes(),
+        this.ocorreuEm,
+        this.uploadedBy.getNome());
     }
 
     @Override

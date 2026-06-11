@@ -4,15 +4,15 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public abstract class BaseEntity {
-    private UUID id;
+    private String id;
     private LocalDateTime criadoEm;
 
     public BaseEntity() {
-        this.id = UUID.randomUUID();
+        this.id = UUID.randomUUID().toString().replace("-", "").substring(0, 6);
         this.criadoEm = LocalDateTime.now();
     }
 
-    public UUID getId() {
+    public String getId() {
         return id;
     }
 

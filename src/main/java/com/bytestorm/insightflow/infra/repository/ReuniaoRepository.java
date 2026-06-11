@@ -3,14 +3,13 @@ package com.bytestorm.insightflow.infra.repository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import com.bytestorm.insightflow.domain.entity.Reuniao;
 import com.bytestorm.insightflow.domain.exceptions.reuniaoRepository.ReuniaoInvalidaException;
 import com.bytestorm.insightflow.domain.exceptions.reuniaoRepository.ReuniaoJaCadastradaException;
 import com.bytestorm.insightflow.domain.interfaces.Repository;
 
-public class ReuniaoRepository implements Repository<Reuniao, UUID> {
+public class ReuniaoRepository implements Repository<Reuniao, String> {
 
     private static ReuniaoRepository instance;
 
@@ -18,8 +17,6 @@ public class ReuniaoRepository implements Repository<Reuniao, UUID> {
 
     private ReuniaoRepository() {
         this.reunioes = new ArrayList<>();
-
-        
     }
 
     public static ReuniaoRepository getInstance() {
@@ -42,6 +39,13 @@ public class ReuniaoRepository implements Repository<Reuniao, UUID> {
         this.reunioes.add(reuniao);
     }
 
+    public Boolean existsByTranscricao(String transcricao) {
+        return this.reunioes.stream()
+                .filter(r -> r.getTranscricao().equals(transcricao))
+                .findFirst()
+                .isPresent();
+    } 
+
     private Boolean exists(Reuniao reuniao) {
         return this.reunioes.stream()
                 .filter(r -> r.equals(reuniao))
@@ -55,7 +59,7 @@ public class ReuniaoRepository implements Repository<Reuniao, UUID> {
     }
 
     @Override
-    public Optional<Reuniao> findById(UUID id) {
+    public Optional<Reuniao> findById(String id) {
         return this.reunioes.stream()
                 .filter(r -> r.getId().equals(id))
                 .findFirst();

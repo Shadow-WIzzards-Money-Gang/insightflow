@@ -4,7 +4,6 @@ import com.bytestorm.insightflow.domain.exceptions.analise.ReuniaoCurtaException
 import com.bytestorm.insightflow.infra.ai.GroqClient;
 
 public class AnalisarReuniaoService {
-    private static final Integer DURACAO_MINIMA = 10; // minutos
     private static final String SYSTEM_PROMPT = """
             Você é um analisador de reuniões comerciais corporativas.
 
@@ -85,7 +84,7 @@ public class AnalisarReuniaoService {
     }
 
     public static String analisarTranscricao(String transcricao, Integer duracao) {
-        if (duracao < DURACAO_MINIMA) {
+        if (duracao < 20) {
             throw new ReuniaoCurtaException();
         }
 

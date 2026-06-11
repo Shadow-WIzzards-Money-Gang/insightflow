@@ -29,6 +29,7 @@ public class Menu {
     public void showMenu() {
         while (true) {
             System.out.println("----- INSIGHT FLOW -----");
+            
             System.out.println("1. Cadastrar colaborador");
             System.out.println("2. Entrar");
             System.out.println("0. Sair");

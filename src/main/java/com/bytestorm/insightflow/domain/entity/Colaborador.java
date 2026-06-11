@@ -41,4 +41,9 @@ public abstract class Colaborador extends BaseEntity {
     public TipoColaborador getTipo() {
         return tipo;
     }
+
+    @Override
+    public String toString() {
+        return String.format("ID: %s | Nome: %s | Email: %s | Tipo: %s | Data de Cadastro: %s", this.getId(), this.nome, this.email, this.tipo.getDescricao(), this.getCriadoEm());
+    }
 }
