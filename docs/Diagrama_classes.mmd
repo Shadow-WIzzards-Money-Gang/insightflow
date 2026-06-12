@@ -24,6 +24,7 @@ classDiagram
         + getSenha() String
         + autenticar(String senha) boolean
         + getTipo() TipoColaborador
+        + toString() String
     }
 
     class Vendedor {
@@ -37,14 +38,15 @@ classDiagram
     class Reuniao {
         - String transcricao
         - Duration duracao
-        - LocalDateTime ocorreuEm
-        - Colaborador uploadedBy
+        - LocalDate ocorreuEm
+        - GerenteVendas uploadedBy
 
-        + Reuniao(String transcricao, Duration duracao, LocalDateTime ocorreuEm, Colaborador uploadedBy)
+        + Reuniao(String transcricao, Duration duracao, LocalDate ocorreuEm, GerenteVendas uploadedBy)
         + getTranscricao() String
         + getDuracao() Duration
-        + getOcorreuEm() LocalDateTime
-        + getUploadedBy() Colaborador
+        + getOcorreuEm() LocalDate
+        + getUploadedBy() GerenteVendas
+        + toString() String
         + equals(Object o) boolean
     }
 
@@ -53,16 +55,18 @@ classDiagram
         - SentimentoReuniao sentimentoReuniao
         - RiscoCancelamento riscoCancelamento
         - SegmentoCliente segmentoCliente
-        - List~ProdutoTotvs~ produtosTotvs
+        - ProdutoTotvs produtoTotvs
         - Reuniao reuniao
 
         + AnaliseReuniao(Reuniao reuniao)
+        + AnaliseReuniao(AnaliseReuniaoDTO analiseReuniaoDTO, Reuniao reuniao)
         + getAssunto() String
         + getSentimentoReuniao() SentimentoReuniao
         + getRiscoCancelamento() RiscoCancelamento
         + getSegmentoCliente() SegmentoCliente
         + getProdutoTotvs() ProdutoTotvs
         + getReuniao() Reuniao
+        + toString() String
         + equals(Object o) boolean
     }
 
@@ -70,6 +74,11 @@ classDiagram
         <<enumeration>>
         VENDEDOR,
         GERENTE_VENDAS
+
+        - String descricao
+    
+        + TipoColaborador(String descricao)
+        + getDescricao() String
     }
 
     class SentimentoReuniao {
@@ -77,6 +86,17 @@ classDiagram
         POSITIVO,
         NEUTRO,
         NEGATIVO
+
+        - String descricao
+        - Double valor
+
+        + SentimentoReuniao(String descricao, Double valor)
+        
+        + fromDescricao(String descricao) SentimentoReuniao
+        + fromValor(Double valor) SentimentoReuniao
+
+        + getDescricao() String
+        + getValor() Double
     }
 
     class RiscoCancelamento {
@@ -85,6 +105,17 @@ classDiagram
         ALTO,
         MODERADO,
         BAIXO
+
+        - String descricao
+        - Double valor
+
+        + RiscoCancelamento(String descricao, Double valor)
+
+        + fromDescricao(String descricao) RiscoCancelamento
+        + fromValor(Double valor) RiscoCancelamento
+
+        + getDescricao() String
+        + getValor() Double
     }
 
     class SegmentoCliente {
@@ -100,6 +131,14 @@ classDiagram
         SUPERMERCADOS,
         VAREJO,
         NAO_IDENTIFICADO
+
+        - String descricao
+
+        + SegmentoCliente(String descricao)
+
+        + fromDescricao(String descricao) SegmentoCliente
+
+        + getDescricao() String
     }
 
     class ProdutoTotvs {
@@ -117,6 +156,16 @@ classDiagram
         TOTVS_AUTOMACAO_FISCAL,
         EDUCACAO,
         NAO_IDENTIFICADO
+
+        - String descricao
+        - String categoria
+
+        + ProdutoTotvs(String descricao, String categoria)
+
+        + fromDescricao(String descricao) ProdutoTotvs
+
+        + getDescricao() String
+        + getCategoria() String
     }
 
     BaseEntity <|-- Reuniao
@@ -135,4 +184,4 @@ classDiagram
     AnaliseReuniao -- SentimentoReuniao
     AnaliseReuniao -- RiscoCancelamento
     AnaliseReuniao "1" -- "1" SegmentoCliente
-    AnaliseReuniao "1" -- "*" ProdutoTotvs
+    AnaliseReuniao "1" -- "1" ProdutoTotvs
