@@ -25,4 +25,8 @@ public class SegmentoClienteService {
         return segmentoClienteRepository.findAll();
     }
 
+    public void deletarSegmentoCliente(Long id) {
+        segmentoClienteRepository.deleteById(id);
+    }
+
 }

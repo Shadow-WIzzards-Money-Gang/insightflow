@@ -29,4 +29,8 @@ public class ProdutoTotvsService {
         return produtoTotvsRepository.findByCategoriaIgnoreCase(categoria);
     }
 
+    public void deletarProdutoTotvs(Long id) {
+        produtoTotvsRepository.deleteById(id);
+    }
+
 }
