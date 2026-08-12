@@ -1,12 +1,12 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:16
-    container_name: postgres-db
+  oracle:
+    image: gvenzl/oracle-free:latest
+    container_name: oracle-db
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin123
-      POSTGRES_DB: insightflow
+      ORACLE_PASSWORD: secret
+      APP_USER: app
+      APP_USER_PASSWORD: app123
     ports:
-      - "5432:5432"
+      - "1521:1521"
