@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.bytestorm.insightflow.application.dto.SegmentoClienteDTO;
+import br.com.bytestorm.insightflow.application.dto.request.SegmentoClienteRequest;
+import br.com.bytestorm.insightflow.application.dto.response.SegmentoClienteResponse;
 import br.com.bytestorm.insightflow.application.service.SegmentoClienteService;
-import br.com.bytestorm.insightflow.domain.entity.SegmentoCliente;
 import jakarta.validation.Valid;
 
 @RestController
@@ -28,12 +28,12 @@ public class SegmentoClienteController {
     }
 
     @GetMapping
-    public ResponseEntity<List<SegmentoCliente>> buscarTodos() {
+    public ResponseEntity<List<SegmentoClienteResponse>> buscarTodos() {
         return ResponseEntity.status(HttpStatus.OK).body(segmentoClienteService.buscarTodos());
     }
 
     @PostMapping
-    public ResponseEntity<Void> cadastrarSegmentoCliente(@RequestBody @Valid SegmentoClienteDTO request) {
+    public ResponseEntity<Void> cadastrarSegmentoCliente(@RequestBody @Valid SegmentoClienteRequest request) {
         segmentoClienteService.cadastrarSegmentoCliente(request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }

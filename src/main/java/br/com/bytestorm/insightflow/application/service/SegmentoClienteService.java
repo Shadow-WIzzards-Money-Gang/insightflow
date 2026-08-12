@@ -4,7 +4,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import br.com.bytestorm.insightflow.application.dto.SegmentoClienteDTO;
+import br.com.bytestorm.insightflow.application.dto.request.SegmentoClienteRequest;
+import br.com.bytestorm.insightflow.application.dto.response.SegmentoClienteResponse;
 import br.com.bytestorm.insightflow.domain.entity.SegmentoCliente;
 import br.com.bytestorm.insightflow.domain.exceptions.segmentoCliente.SegmentoJaCadastrado;
 import br.com.bytestorm.insightflow.domain.exceptions.segmentoCliente.SegmentoNaoEncontrado;
@@ -19,7 +20,7 @@ public class SegmentoClienteService {
         this.segmentoClienteRepository = segmentoClienteRepository;
     }
 
-    public void cadastrarSegmentoCliente(SegmentoClienteDTO request) {
+    public void cadastrarSegmentoCliente(SegmentoClienteRequest request) {
 
         if (segmentoClienteRepository.existsByNomeIgnoreCase(request.nome())) {
             throw new SegmentoJaCadastrado();
@@ -28,8 +29,10 @@ public class SegmentoClienteService {
         segmentoClienteRepository.save(request.toEntity());
     }
 
-    public List<SegmentoCliente> buscarTodos() {
-        return segmentoClienteRepository.findAll();
+    public List<SegmentoClienteResponse> buscarTodos() {
+        return segmentoClienteRepository.findAll().stream()
+                .map((s) -> SegmentoClienteResponse.fromEntity(s))
+                .toList();
     }
 
     public void deletarSegmentoCliente(Long id) {

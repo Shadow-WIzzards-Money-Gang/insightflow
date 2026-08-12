@@ -4,7 +4,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import br.com.bytestorm.insightflow.application.dto.ProdutoTotvsDTO;
+import br.com.bytestorm.insightflow.application.dto.request.ProdutoTotvsRequest;
+import br.com.bytestorm.insightflow.application.dto.response.ProdutoTotvsResponse;
 import br.com.bytestorm.insightflow.domain.entity.ProdutoTotvs;
 import br.com.bytestorm.insightflow.domain.exceptions.produtoTotvs.ProdutoJaCadastrado;
 import br.com.bytestorm.insightflow.domain.exceptions.produtoTotvs.ProdutoNaoEncontrado;
@@ -19,7 +20,7 @@ public class ProdutoTotvsService {
         this.produtoTotvsRepository = produtoTotvsRepository;
     }
 
-    public void cadastrarProdutoTotvs(ProdutoTotvsDTO request) {
+    public void cadastrarProdutoTotvs(ProdutoTotvsRequest request) {
 
         if (produtoTotvsRepository.existsByNomeIgnoreCase(request.nome())) {
             throw new ProdutoJaCadastrado();
@@ -28,12 +29,16 @@ public class ProdutoTotvsService {
         produtoTotvsRepository.save(request.toEntity());
     }
 
-    public List<ProdutoTotvs> buscarTodos() {
-        return produtoTotvsRepository.findAll();
+    public List<ProdutoTotvsResponse> buscarTodos() {
+        return produtoTotvsRepository.findAll().stream()
+            .map((p) -> ProdutoTotvsResponse.fromEntity(p))
+            .toList();
     }
 
-    public List<ProdutoTotvs> buscarPorCategoria(String categoria) {
-        return produtoTotvsRepository.findByCategoriaIgnoreCase(categoria);
+    public List<ProdutoTotvsResponse> buscarPorCategoria(String categoria) {
+        return produtoTotvsRepository.findByCategoriaIgnoreCase(categoria).stream()
+                .map((p) -> ProdutoTotvsResponse.fromEntity(p))
+                .toList();
     }
 
     public void deletarProdutoTotvs(Long id) {
