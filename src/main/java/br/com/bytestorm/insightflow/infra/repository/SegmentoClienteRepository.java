@@ -6,4 +6,6 @@ import br.com.bytestorm.insightflow.domain.entity.SegmentoCliente;
 
 public interface SegmentoClienteRepository extends JpaRepository<SegmentoCliente, Long> {
 
+    Boolean existsByNomeIgnoreCase(String nome);
+
 }

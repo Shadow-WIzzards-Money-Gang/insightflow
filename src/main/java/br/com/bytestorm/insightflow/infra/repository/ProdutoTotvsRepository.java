@@ -9,5 +9,6 @@ import br.com.bytestorm.insightflow.domain.entity.ProdutoTotvs;
 public interface ProdutoTotvsRepository extends JpaRepository<ProdutoTotvs, Long> {
 
     List<ProdutoTotvs> findByCategoriaIgnoreCase(String categoria);
+    Boolean existsByNomeIgnoreCase(String nome);
 
 }
