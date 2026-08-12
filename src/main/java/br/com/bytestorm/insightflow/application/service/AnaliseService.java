@@ -11,21 +11,22 @@ import br.com.bytestorm.insightflow.application.dto.ia.AnaliseIAResult;
 import br.com.bytestorm.insightflow.application.dto.request.AnaliseRequest;
 import br.com.bytestorm.insightflow.application.dto.response.AnaliseResponse;
 import br.com.bytestorm.insightflow.application.dto.response.ReuniaoResponse;
+import br.com.bytestorm.insightflow.application.dto.response.SegmentoClienteResponse;
 import br.com.bytestorm.insightflow.domain.entity.AnaliseReuniao;
 import br.com.bytestorm.insightflow.domain.entity.ProdutoTotvs;
 import br.com.bytestorm.insightflow.domain.entity.Reuniao;
 import br.com.bytestorm.insightflow.domain.entity.SegmentoCliente;
 import br.com.bytestorm.insightflow.domain.enums.RiscoCancelamento;
 import br.com.bytestorm.insightflow.domain.enums.SentimentoReuniao;
-import br.com.bytestorm.insightflow.domain.exceptions.produtoTotvs.ProdutoNaoEncontrado;
-import br.com.bytestorm.insightflow.domain.exceptions.segmentoCliente.SegmentoNaoEncontrado;
+import br.com.bytestorm.insightflow.domain.exceptions.produtoTotvs.ProdutoNaoEncontradoException;
+import br.com.bytestorm.insightflow.domain.exceptions.segmentoCliente.SegmentoNaoEncontradoException;
 import br.com.bytestorm.insightflow.infra.repository.AnaliseReuniaoRepository;
 import br.com.bytestorm.insightflow.infra.repository.ProdutoTotvsRepository;
 import br.com.bytestorm.insightflow.infra.repository.ReuniaoRepository;
 import br.com.bytestorm.insightflow.infra.repository.SegmentoClienteRepository;
 
 @Service
-public class AnaliseService {
+public class AnaliseService {   
 
     private static final String SYSTEM_INSTRUCTION = """
             Voce e um analista especializado em reunioes comerciais e de suporte da TOTVS.
@@ -62,12 +63,13 @@ public class AnaliseService {
 
     @Transactional
     public AnaliseResponse analisarReuniao(AnaliseRequest request) {
+
         Reuniao reuniao = cadastrarReuniao(request);
 
         AnaliseIAResult resultadoIA = analisarComIA(reuniao.getTranscricaoBruta());
 
         ProdutoTotvs produtoTotvs = produtoTotvsRepository.findByNomeIgnoreCase(resultadoIA.produtoTotvsNome())
-                .orElseThrow(() -> new ProdutoNaoEncontrado());
+                .orElseThrow(() -> new ProdutoNaoEncontradoException());
 
         AnaliseReuniao analiseReuniao = AnaliseReuniao.builder()
                 .assunto(resultadoIA.assunto())
@@ -94,18 +96,37 @@ public class AnaliseService {
 
     private Reuniao cadastrarReuniao(AnaliseRequest request) {
         SegmentoCliente segmentoCliente = encontrarSegmentoCliente(request.segmentoClienteId());
-        return reuniaoRepository.save(request.toEntity(segmentoCliente));
+
+        Reuniao reuniao = request.toEntity(segmentoCliente);
+
+        return reuniaoRepository.save(reuniao);
     }
 
-    public List<ReuniaoResponse> buscarTodos() {
+    public List<ReuniaoResponse> buscarReunioes() {
         return this.reuniaoRepository.findAll().stream()
-            .map((r) -> ReuniaoResponse.fromEntity(r))
+            .map((r) -> paraResumo(r))
             .toList();
+    }
+
+    private ReuniaoResponse paraResumo(Reuniao reuniao) {
+        String transcricaoBruta = reuniao.getTranscricaoBruta();
+        String resumo = transcricaoBruta != null && transcricaoBruta.length() > 30
+                ? transcricaoBruta.substring(0, 30) + "..."
+                : transcricaoBruta;
+
+        return new ReuniaoResponse(
+                reuniao.getId(),
+                resumo,
+                reuniao.getDataReuniao(),
+                reuniao.getDuracao(),
+                SegmentoClienteResponse.fromEntity(reuniao.getSegmentoCliente()),
+                reuniao.getCreatedAt()
+        );
     }
 
     private SegmentoCliente encontrarSegmentoCliente(Long id) {
         return this.segmentoClienteRepository.findById(id).orElseThrow(
-            () -> new SegmentoNaoEncontrado()
+            () -> new SegmentoNaoEncontradoException()
         );
     }
 

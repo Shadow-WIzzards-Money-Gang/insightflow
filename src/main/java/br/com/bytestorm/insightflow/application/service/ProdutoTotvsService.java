@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 import br.com.bytestorm.insightflow.application.dto.request.ProdutoTotvsRequest;
 import br.com.bytestorm.insightflow.application.dto.response.ProdutoTotvsResponse;
 import br.com.bytestorm.insightflow.domain.entity.ProdutoTotvs;
-import br.com.bytestorm.insightflow.domain.exceptions.produtoTotvs.ProdutoJaCadastrado;
-import br.com.bytestorm.insightflow.domain.exceptions.produtoTotvs.ProdutoNaoEncontrado;
+import br.com.bytestorm.insightflow.domain.exceptions.produtoTotvs.ProdutoJaCadastradoException;
+import br.com.bytestorm.insightflow.domain.exceptions.produtoTotvs.ProdutoNaoEncontradoException;
 import br.com.bytestorm.insightflow.infra.repository.ProdutoTotvsRepository;
 
 @Service
@@ -23,7 +23,7 @@ public class ProdutoTotvsService {
     public void cadastrarProdutoTotvs(ProdutoTotvsRequest request) {
 
         if (produtoTotvsRepository.existsByNomeIgnoreCase(request.nome())) {
-            throw new ProdutoJaCadastrado();
+            throw new ProdutoJaCadastradoException();
         }
 
         produtoTotvsRepository.save(request.toEntity());
@@ -48,7 +48,7 @@ public class ProdutoTotvsService {
 
     public ProdutoTotvs buscaPorId(Long id) {
         return produtoTotvsRepository.findById(id).orElseThrow(
-            () -> new ProdutoNaoEncontrado()
+            () -> new ProdutoNaoEncontradoException()
         );
     }
 

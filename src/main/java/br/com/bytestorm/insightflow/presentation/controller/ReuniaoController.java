@@ -32,8 +32,8 @@ public class ReuniaoController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ReuniaoResponse>> buscarTodos() {
-        return ResponseEntity.status(HttpStatus.OK).body(this.analiseService.buscarTodos());
+    public ResponseEntity<List<ReuniaoResponse>> buscarReunioes() {
+        return ResponseEntity.status(HttpStatus.OK).body(this.analiseService.buscarReunioes());
     }
 
 }
