@@ -10,30 +10,30 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.bytestorm.insightflow.application.dto.request.ReuniaoRequest;
+import br.com.bytestorm.insightflow.application.dto.request.AnaliseRequest;
+import br.com.bytestorm.insightflow.application.dto.response.AnaliseResponse;
 import br.com.bytestorm.insightflow.application.dto.response.ReuniaoResponse;
-import br.com.bytestorm.insightflow.application.service.ReuniaoService;
+import br.com.bytestorm.insightflow.application.service.AnaliseService;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/reunioes")
 public class ReuniaoController {
 
-    private final ReuniaoService reuniaoService;
+    private final AnaliseService analiseService;
     
-    public ReuniaoController(ReuniaoService reuniaoService) {
-        this.reuniaoService = reuniaoService;
+    public ReuniaoController(AnaliseService analiseService) {
+        this.analiseService = analiseService;
     }
 
-    @PostMapping
-    public ResponseEntity<Void> criarReuniao(@Valid @RequestBody ReuniaoRequest request) {
-        this.reuniaoService.criarReuniao(request);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+    @PostMapping("/analise")
+    public ResponseEntity<AnaliseResponse> analisarReuniao(@Valid @RequestBody AnaliseRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.analiseService.analisarReuniao(request));
     }
 
     @GetMapping
     public ResponseEntity<List<ReuniaoResponse>> buscarTodos() {
-        return ResponseEntity.status(HttpStatus.OK).body(this.reuniaoService.buscarTodos());
+        return ResponseEntity.status(HttpStatus.OK).body(this.analiseService.buscarTodos());
     }
 
 }

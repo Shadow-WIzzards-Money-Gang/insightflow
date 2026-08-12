@@ -11,7 +11,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record ReuniaoRequest(
+public record AnaliseRequest(
 
     @NotBlank(message = "A transcricao nao pode estar vazia!") String transcricaoBruta,
     @NotNull(message = "A data da reuniao nao pode estar vazia!") LocalDateTime dataReuniao,

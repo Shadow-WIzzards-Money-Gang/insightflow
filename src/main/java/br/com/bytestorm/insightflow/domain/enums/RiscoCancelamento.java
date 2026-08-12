@@ -7,4 +7,13 @@ public enum RiscoCancelamento {
     MODERADO,
     BAIXO;
 
+    public static RiscoCancelamento fromString(String s) {
+        for (RiscoCancelamento risco : RiscoCancelamento.values()) {
+            if (risco.name().equalsIgnoreCase(s)) {
+                return risco;
+            }
+        }
+        return BAIXO;
+    }
+
 }
