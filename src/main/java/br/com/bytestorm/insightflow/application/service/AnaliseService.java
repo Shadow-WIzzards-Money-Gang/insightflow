@@ -102,6 +102,12 @@ public class AnaliseService {
         return reuniaoRepository.save(reuniao);
     }
 
+    public List<AnaliseResponse> buscarAnalises() {
+        return this.analiseReuniaoRepository.findAll().stream()
+            .map((a) -> AnaliseResponse.fromEntity(a))
+            .toList();
+    }
+
     public List<ReuniaoResponse> buscarReunioes() {
         return this.reuniaoRepository.findAll().stream()
             .map((r) -> paraResumo(r))

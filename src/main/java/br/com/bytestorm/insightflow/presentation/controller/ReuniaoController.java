@@ -31,6 +31,11 @@ public class ReuniaoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.analiseService.analisarReuniao(request));
     }
 
+    @GetMapping("/analise")
+    public ResponseEntity<List<AnaliseResponse>> buscarAnalises() {
+        return ResponseEntity.status(HttpStatus.OK).body(this.analiseService.buscarAnalises());
+    }
+
     @GetMapping
     public ResponseEntity<List<ReuniaoResponse>> buscarReunioes() {
         return ResponseEntity.status(HttpStatus.OK).body(this.analiseService.buscarReunioes());
