@@ -36,11 +36,11 @@ public class SegmentoClienteService {
     }
 
     public void deletarSegmentoCliente(Long id) {
-        SegmentoCliente segmento = buscaPorId(id);
+        SegmentoCliente segmento = buscarPorId(id);
         segmentoClienteRepository.delete(segmento);
     }
 
-    public SegmentoCliente buscaPorId(Long id) {
+    public SegmentoCliente buscarPorId(Long id) {
         return segmentoClienteRepository.findById(id).orElseThrow(
             () -> new SegmentoNaoEncontradoException()
         );

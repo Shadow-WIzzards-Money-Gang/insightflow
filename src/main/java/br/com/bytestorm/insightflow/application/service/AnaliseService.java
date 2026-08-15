@@ -10,20 +10,14 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.bytestorm.insightflow.application.dto.ia.AnaliseIAResult;
 import br.com.bytestorm.insightflow.application.dto.request.AnaliseRequest;
 import br.com.bytestorm.insightflow.application.dto.response.AnaliseResponse;
-import br.com.bytestorm.insightflow.application.dto.response.ReuniaoResponse;
-import br.com.bytestorm.insightflow.application.dto.response.SegmentoClienteResponse;
 import br.com.bytestorm.insightflow.domain.entity.AnaliseReuniao;
 import br.com.bytestorm.insightflow.domain.entity.ProdutoTotvs;
 import br.com.bytestorm.insightflow.domain.entity.Reuniao;
-import br.com.bytestorm.insightflow.domain.entity.SegmentoCliente;
 import br.com.bytestorm.insightflow.domain.enums.RiscoCancelamento;
 import br.com.bytestorm.insightflow.domain.enums.SentimentoReuniao;
-import br.com.bytestorm.insightflow.domain.exceptions.produtoTotvs.ProdutoNaoEncontradoException;
-import br.com.bytestorm.insightflow.domain.exceptions.segmentoCliente.SegmentoNaoEncontradoException;
+import br.com.bytestorm.insightflow.helpers.Helpers;
 import br.com.bytestorm.insightflow.infra.repository.AnaliseReuniaoRepository;
 import br.com.bytestorm.insightflow.infra.repository.ProdutoTotvsRepository;
-import br.com.bytestorm.insightflow.infra.repository.ReuniaoRepository;
-import br.com.bytestorm.insightflow.infra.repository.SegmentoClienteRepository;
 
 @Service
 public class AnaliseService {   
@@ -46,30 +40,29 @@ public class AnaliseService {
             """;
 
     private final ChatClient chatClient;
-    private final ReuniaoRepository reuniaoRepository;
-    private final SegmentoClienteRepository segmentoClienteRepository;
+    private final ReuniaoService reuniaoService;
     private final ProdutoTotvsRepository produtoTotvsRepository;
+    private final ProdutoTotvsService produtoTotvsService;
     private final AnaliseReuniaoRepository analiseReuniaoRepository;
 
-    public AnaliseService(ChatClient.Builder chatClientBuilder, ReuniaoRepository reuniaoRepository,
-            SegmentoClienteRepository segmentoClienteRepository, ProdutoTotvsRepository produtoTotvsRepository,
+    public AnaliseService(ChatClient.Builder chatClientBuilder, ReuniaoService reuniaoService,
+            ProdutoTotvsRepository produtoTotvsRepository, ProdutoTotvsService produtoTotvsService,
             AnaliseReuniaoRepository analiseReuniaoRepository) {
         this.chatClient = chatClientBuilder.build();
-        this.reuniaoRepository = reuniaoRepository;
-        this.segmentoClienteRepository = segmentoClienteRepository;
+        this.reuniaoService = reuniaoService;
         this.produtoTotvsRepository = produtoTotvsRepository;
+        this.produtoTotvsService = produtoTotvsService;
         this.analiseReuniaoRepository = analiseReuniaoRepository;
     }
 
     @Transactional
     public AnaliseResponse analisarReuniao(AnaliseRequest request) {
 
-        Reuniao reuniao = cadastrarReuniao(request);
+        Reuniao reuniao = reuniaoService.cadastrarReuniao(request);
 
         AnaliseIAResult resultadoIA = analisarComIA(reuniao.getTranscricaoBruta());
 
-        ProdutoTotvs produtoTotvs = produtoTotvsRepository.findByNomeIgnoreCase(resultadoIA.produtoTotvsNome())
-                .orElseThrow(() -> new ProdutoNaoEncontradoException());
+        ProdutoTotvs produtoTotvs = produtoTotvsService.buscarPorNome(resultadoIA.produtoTotvsNome());
 
         AnaliseReuniao analiseReuniao = AnaliseReuniao.builder()
                 .assunto(resultadoIA.assunto())
@@ -94,46 +87,10 @@ public class AnaliseService {
                 .entity(AnaliseIAResult.class);
     }
 
-    private Reuniao cadastrarReuniao(AnaliseRequest request) {
-        SegmentoCliente segmentoCliente = encontrarSegmentoCliente(request.segmentoClienteId());
-
-        Reuniao reuniao = request.toEntity(segmentoCliente);
-
-        return reuniaoRepository.save(reuniao);
-    }
-
     public List<AnaliseResponse> buscarAnalises() {
         return this.analiseReuniaoRepository.findAll().stream()
-            .map((a) -> AnaliseResponse.fromEntity(a))
+            .map((a) -> Helpers.resumirAnalise(a))
             .toList();
     }
-
-    public List<ReuniaoResponse> buscarReunioes() {
-        return this.reuniaoRepository.findAll().stream()
-            .map((r) -> paraResumo(r))
-            .toList();
-    }
-
-    private ReuniaoResponse paraResumo(Reuniao reuniao) {
-        String transcricaoBruta = reuniao.getTranscricaoBruta();
-        String resumo = transcricaoBruta != null && transcricaoBruta.length() > 30
-                ? transcricaoBruta.substring(0, 30) + "..."
-                : transcricaoBruta;
-
-        return new ReuniaoResponse(
-                reuniao.getId(),
-                resumo,
-                reuniao.getDataReuniao(),
-                reuniao.getDuracao(),
-                SegmentoClienteResponse.fromEntity(reuniao.getSegmentoCliente()),
-                reuniao.getCreatedAt()
-        );
-    }
-
-    private SegmentoCliente encontrarSegmentoCliente(Long id) {
-        return this.segmentoClienteRepository.findById(id).orElseThrow(
-            () -> new SegmentoNaoEncontradoException()
-        );
-    }
-
 }
+

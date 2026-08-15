@@ -1,4 +1,4 @@
-package br.com.bytestorm.insightflow.presentation.controller;
+package br.com.bytestorm.insightflow.domain.exceptions;
 
 import java.util.List;
 import java.util.stream.Collectors;

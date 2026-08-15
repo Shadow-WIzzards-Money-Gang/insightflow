@@ -41,6 +41,12 @@ public class ProdutoTotvsService {
                 .toList();
     }
 
+    public ProdutoTotvs buscarPorNome(String nome) {
+        return produtoTotvsRepository.findByNomeIgnoreCase(nome).orElseThrow(
+            () -> new ProdutoNaoEncontradoException()
+        );
+    }
+
     public void deletarProdutoTotvs(Long id) {
         ProdutoTotvs produto = buscaPorId(id);
         produtoTotvsRepository.delete(produto);
