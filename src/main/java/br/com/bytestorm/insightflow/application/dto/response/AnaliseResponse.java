@@ -7,6 +7,9 @@ import br.com.bytestorm.insightflow.domain.enums.SentimentoReuniao;
 public record AnaliseResponse(
     Long id,
     String assunto,
+    String pontosPositivos,
+    String pontosNegativos,
+    Integer nota,
     ProdutoTotvsResponse produtoTotvs,
     SentimentoReuniao sentimentoReuniao,
     RiscoCancelamento riscoCancelamento,
@@ -17,6 +20,9 @@ public record AnaliseResponse(
         return new AnaliseResponse(
             analiseReuniao.getId(),
             analiseReuniao.getAssunto(),
+            analiseReuniao.getPontosPositivos(),
+            analiseReuniao.getPontosNegativos(),
+            analiseReuniao.getNota(),
             ProdutoTotvsResponse.fromEntity(analiseReuniao.getProdutoTotvs()),
             analiseReuniao.getSentimentoReuniao(),
             analiseReuniao.getRiscoCancelamento(),

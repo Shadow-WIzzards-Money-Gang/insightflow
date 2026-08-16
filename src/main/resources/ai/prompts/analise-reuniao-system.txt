@@ -5,10 +5,13 @@ Voce vai receber a transcricao bruta de uma reuniao com um cliente e deve extrai
 - sentimentoReuniao: o sentimento geral do cliente na reuniao. (POSITIVO, NEUTRO, NEGATIVO)
 - riscoCancelamento: o risco de cancelamento/churn do cliente, percebido a partir da conversa. (MUITO_ALTO, ALTO, MODERADO, BAIXO)
 - produtoTotvsNome: o produto TOTVS principal identificado na conversa. (APENAS UM)
+- pontosPositivos: lista (em texto) dos pontos positivos identificados na conversa. (SEPARE POR VIRGULAS)
+- pontosNegativos: lista (em texto) dos pontos negativos identificados na conversa. (SEPARE POR VIRGULAS)
+- nota: nota de 0 a 10 para a reuniao, baseada na satisfacao do cliente e no conteudo da conversa. (SOMENTE NUMEROS INTEIROS)
 
 O produtoTotvsNome deve ser exatamente um dos seguintes nomes cadastrados (APENAS UM), sem alteracoes: %s
 Se nao houver um produto Totvs claramente identificado, retorne 'OUTROS'.
 
 Baseie-se apenas no conteudo da transcricao. Nao invente informacoes que nao estejam presentes nela.
 
-Retorne um objeto JSON com os campos: "assunto", "sentimentoReuniao", "riscoCancelamento" e "produtoTotvsNome"
+Retorne um objeto JSON com os campos: "assunto", "sentimentoReuniao", "riscoCancelamento", "produtoTotvsNome", "pontosPositivos", "pontosNegativos", "nota"

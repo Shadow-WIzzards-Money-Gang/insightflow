@@ -35,6 +35,9 @@ public class Helpers {
         return new AnaliseResponse(
             analiseReuniao.getId(),
             analiseReuniao.getAssunto(),
+            analiseReuniao.getPontosPositivos(),
+            analiseReuniao.getPontosNegativos(),
+            analiseReuniao.getNota(),
             ProdutoTotvsResponse.fromEntity(analiseReuniao.getProdutoTotvs()),
             analiseReuniao.getSentimentoReuniao(),
             analiseReuniao.getRiscoCancelamento(),

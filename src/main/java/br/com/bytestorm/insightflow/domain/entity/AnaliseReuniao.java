@@ -36,6 +36,15 @@ public class AnaliseReuniao extends BaseEntity {
     @Column(nullable = false)
     private String assunto;
 
+    @Column(name = "pontos_positivos", nullable = false)
+    private String pontosPositivos;
+
+    @Column(name = "pontos_negativos", nullable = false)
+    private String pontosNegativos;
+
+    @Column(nullable = false)
+    private Integer nota;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reuniao_id", nullable = false, unique = true)
     private Reuniao reuniao;

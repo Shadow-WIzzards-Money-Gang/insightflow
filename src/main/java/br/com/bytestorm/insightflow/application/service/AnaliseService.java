@@ -65,6 +65,9 @@ public class AnaliseService {
     public AnaliseReuniao converterParaEntidade(AnaliseIAResult analiseIAResult, Reuniao reuniao) {
         return AnaliseReuniao.builder()
             .assunto(analiseIAResult.assunto())
+            .pontosPositivos(analiseIAResult.pontosPositivos())
+            .pontosNegativos(analiseIAResult.pontosNegativos())
+            .nota(analiseIAResult.nota())
             .sentimentoReuniao(SentimentoReuniao.fromString(analiseIAResult.sentimentoReuniao().toUpperCase()))
             .riscoCancelamento(RiscoCancelamento.fromString(analiseIAResult.riscoCancelamento().toUpperCase()))
             .produtoTotvs(produtoTotvsService.buscarPorNome(analiseIAResult.produtoTotvsNome()))
