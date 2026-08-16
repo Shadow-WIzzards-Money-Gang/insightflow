@@ -1,5 +1,6 @@
 package br.com.bytestorm.insightflow.application.service;
 
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -14,6 +15,7 @@ import br.com.bytestorm.insightflow.domain.entity.AnaliseReuniao;
 import br.com.bytestorm.insightflow.domain.entity.Reuniao;
 import br.com.bytestorm.insightflow.domain.enums.RiscoCancelamento;
 import br.com.bytestorm.insightflow.domain.enums.SentimentoReuniao;
+import br.com.bytestorm.insightflow.domain.exceptions.reuniao.ReuniaoNaoEncontradaException;
 import br.com.bytestorm.insightflow.helpers.Helpers;
 import br.com.bytestorm.insightflow.infra.ai.AiClient;
 import br.com.bytestorm.insightflow.infra.repository.AnaliseReuniaoRepository;
@@ -40,7 +42,14 @@ public class AnaliseService {
     @Transactional
     public AnaliseResponse analisarReuniao(AnaliseRequest request) {
 
-        Reuniao reuniao = reuniaoService.cadastrarReuniao(request);
+        String hashTranscricao = Helpers.gerarHash(request.transcricaoBruta());
+        Optional<Reuniao> reuniaoExistente = reuniaoService.buscarPorHashTranscricao(hashTranscricao);
+
+        if(reuniaoExistente.isPresent()) {
+            return buscarAnalisePorIdReuniao(reuniaoExistente.get().getId());
+        }
+
+        Reuniao reuniao = reuniaoService.cadastrarReuniao(request, hashTranscricao);
 
         String produtosDisponiveis = produtoTotvsService.buscarTodos().stream()
                 .map((p) -> p.nome().toUpperCase())
@@ -66,5 +75,11 @@ public class AnaliseService {
     public Page<AnaliseResponse> buscarAnalises(Pageable pageable) {
         return this.analiseReuniaoRepository.findAll(pageable)
             .map((a) -> Helpers.resumirAnalise(a));
+    }
+
+    public AnaliseResponse buscarAnalisePorIdReuniao(Long id) {
+        return AnaliseResponse.fromEntity(this.analiseReuniaoRepository.findByReuniaoId(id).orElseThrow(
+            () -> new ReuniaoNaoEncontradaException()
+        ));
     }
 }
