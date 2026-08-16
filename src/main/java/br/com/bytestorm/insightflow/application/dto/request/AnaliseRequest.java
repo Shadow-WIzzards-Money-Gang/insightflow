@@ -19,9 +19,10 @@ public record AnaliseRequest(
     @NotNull(message = "O segmento do cliente nao pode estar vazio!") Long segmentoClienteId    
 ) {
     
-    public Reuniao toEntity(SegmentoCliente segmentoCliente) {
+    public Reuniao toEntity(SegmentoCliente segmentoCliente, String hashTranscricao) {
         return Reuniao.builder()
                 .transcricaoBruta(this.transcricaoBruta)
+                .hashTranscricao(hashTranscricao)
                 .dataReuniao(this.dataReuniao)
                 .duracao(this.duracao)
                 .segmentoCliente(segmentoCliente)

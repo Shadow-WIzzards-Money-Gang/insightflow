@@ -1,7 +1,7 @@
 package br.com.bytestorm.insightflow.presentation.controller;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,8 +31,8 @@ public class AnaliseReuniaoController {
     }
 
     @GetMapping
-    public ResponseEntity<List<AnaliseResponse>> buscarAnalises() {
-        return ResponseEntity.status(HttpStatus.OK).body(this.analiseService.buscarAnalises());
+    public ResponseEntity<Page<AnaliseResponse>> buscarAnalises(Pageable pageable) {
+        return ResponseEntity.status(HttpStatus.OK).body(this.analiseService.buscarAnalises(pageable));
     }
 
 }

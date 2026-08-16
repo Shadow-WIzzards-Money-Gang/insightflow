@@ -1,9 +1,10 @@
 package br.com.bytestorm.insightflow.application.service;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,10 +88,9 @@ public class AnaliseService {
                 .entity(AnaliseIAResult.class);
     }
 
-    public List<AnaliseResponse> buscarAnalises() {
-        return this.analiseReuniaoRepository.findAll().stream()
-            .map((a) -> Helpers.resumirAnalise(a))
-            .toList();
+    public Page<AnaliseResponse> buscarAnalises(Pageable pageable) {
+        return this.analiseReuniaoRepository.findAll(pageable)
+            .map((a) -> Helpers.resumirAnalise(a));
     }
 }
 

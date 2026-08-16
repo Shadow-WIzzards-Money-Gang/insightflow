@@ -22,10 +22,12 @@ CREATE TABLE reunioes (
     created_at          TIMESTAMP(6),
     updated_at          TIMESTAMP(6),
     transcricao_bruta   CLOB,
+    hash_transcricao    VARCHAR2(255 CHAR) NOT NULL,
     data_reuniao        TIMESTAMP(6),
     duracao             TIMESTAMP(0),
     segmento_cliente_id NUMBER(19, 0),
     CONSTRAINT pk_reunioes PRIMARY KEY (id),
+    CONSTRAINT uq_reunioes_hash_transcricao UNIQUE (hash_transcricao),
     CONSTRAINT fk_reunioes_segmento_cliente FOREIGN KEY (segmento_cliente_id) REFERENCES segmentos_clientes (id)
 );
 

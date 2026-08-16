@@ -34,6 +34,9 @@ public class Reuniao extends BaseEntity {
     @Column(name = "transcricao_bruta")
     private String transcricaoBruta;
 
+    @Column(name = "hash_transcricao", nullable = false, unique = true)
+    private String hashTranscricao;
+
     @Column(name = "data_reuniao")
     private LocalDateTime dataReuniao;
 

@@ -1,5 +1,9 @@
 package br.com.bytestorm.insightflow.helpers;
 
+import java.nio.charset.StandardCharsets;
+
+import org.springframework.util.DigestUtils;
+
 import br.com.bytestorm.insightflow.application.dto.response.AnaliseResponse;
 import br.com.bytestorm.insightflow.application.dto.response.ProdutoTotvsResponse;
 import br.com.bytestorm.insightflow.application.dto.response.ReuniaoResponse;
@@ -38,4 +42,8 @@ public class Helpers {
         );
     }
 
+    public static String gerarHash(String text) {
+        String hashText = DigestUtils.md5DigestAsHex(text.getBytes(StandardCharsets.UTF_8));
+        return hashText;
+    }
 }
