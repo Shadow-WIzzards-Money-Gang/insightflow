@@ -80,6 +80,12 @@ public class AnaliseService {
             .map((a) -> Helpers.resumirAnalise(a));
     }
 
+    public AnaliseResponse buscarAnalisePorId(Long id) {
+        return this.analiseReuniaoRepository.findById(id)
+            .map(a -> AnaliseResponse.fromEntity(a))
+            .orElseThrow(() -> new ReuniaoNaoEncontradaException());
+    }
+
     public AnaliseResponse buscarAnalisePorIdReuniao(Long id) {
         return AnaliseResponse.fromEntity(this.analiseReuniaoRepository.findByReuniaoId(id).orElseThrow(
             () -> new ReuniaoNaoEncontradaException()

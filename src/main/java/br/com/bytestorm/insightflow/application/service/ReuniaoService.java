@@ -10,6 +10,7 @@ import br.com.bytestorm.insightflow.application.dto.request.AnaliseRequest;
 import br.com.bytestorm.insightflow.application.dto.response.ReuniaoResponse;
 import br.com.bytestorm.insightflow.domain.entity.Reuniao;
 import br.com.bytestorm.insightflow.domain.entity.SegmentoCliente;
+import br.com.bytestorm.insightflow.domain.exceptions.reuniao.ReuniaoNaoEncontradaException;
 import br.com.bytestorm.insightflow.helpers.Helpers;
 import br.com.bytestorm.insightflow.infra.repository.ReuniaoRepository;
 
@@ -39,6 +40,12 @@ public class ReuniaoService {
     public Page<ReuniaoResponse> buscarReunioes(Pageable pageable) {
         return this.reuniaoRepository.findAll(pageable)
                 .map((r) -> Helpers.resumirReuniao(r));
+    }
+
+    public ReuniaoResponse buscarReuniaoPorId(Long id) {
+        return this.reuniaoRepository.findById(id)
+            .map(r -> ReuniaoResponse.fromEntity(r))
+            .orElseThrow(() -> new ReuniaoNaoEncontradaException());
     }
 
 }
