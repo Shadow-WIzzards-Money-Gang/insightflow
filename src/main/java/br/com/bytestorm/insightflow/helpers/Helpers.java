@@ -41,6 +41,7 @@ public class Helpers {
             ProdutoTotvsResponse.fromEntity(analiseReuniao.getProdutoTotvs()),
             analiseReuniao.getSentimentoReuniao(),
             analiseReuniao.getRiscoCancelamento(),
+            analiseReuniao.getMotivoCancelamento(),
             resumirReuniao(analiseReuniao.getReuniao())
         );
     }

@@ -63,16 +63,26 @@ public class AnaliseService {
     }
 
     public AnaliseReuniao converterParaEntidade(AnaliseIAResult analiseIAResult, Reuniao reuniao) {
+        RiscoCancelamento riscoCancelamento = RiscoCancelamento.fromString(analiseIAResult.riscoCancelamento().toUpperCase());
+
         return AnaliseReuniao.builder()
             .assunto(analiseIAResult.assunto())
             .pontosPositivos(analiseIAResult.pontosPositivos())
             .pontosNegativos(analiseIAResult.pontosNegativos())
             .nota(analiseIAResult.nota())
             .sentimentoReuniao(SentimentoReuniao.fromString(analiseIAResult.sentimentoReuniao().toUpperCase()))
-            .riscoCancelamento(RiscoCancelamento.fromString(analiseIAResult.riscoCancelamento().toUpperCase()))
+            .riscoCancelamento(riscoCancelamento)
+            .motivoCancelamento(extrairMotivoCancelamento(riscoCancelamento, analiseIAResult.motivoCancelamento()))
             .produtoTotvs(produtoTotvsService.buscarPorNome(analiseIAResult.produtoTotvsNome()))
             .reuniao(reuniao)
             .build();
+    }
+
+    private String extrairMotivoCancelamento(RiscoCancelamento riscoCancelamento, String motivoCancelamento) {
+        if (riscoCancelamento == RiscoCancelamento.BAIXO) {
+            return null;
+        }
+        return (motivoCancelamento == null || motivoCancelamento.isBlank()) ? null : motivoCancelamento;
     }
 
     public Page<AnaliseResponse> buscarAnalises(Pageable pageable) {

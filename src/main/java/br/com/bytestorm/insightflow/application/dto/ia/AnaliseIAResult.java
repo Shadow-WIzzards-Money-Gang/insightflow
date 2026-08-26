@@ -7,6 +7,7 @@ public record AnaliseIAResult(
     Integer nota,
     String sentimentoReuniao,
     String riscoCancelamento,
+    String motivoCancelamento,
     String produtoTotvsNome
 ) {
 

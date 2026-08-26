@@ -13,6 +13,7 @@ public record AnaliseResponse(
     ProdutoTotvsResponse produtoTotvs,
     SentimentoReuniao sentimentoReuniao,
     RiscoCancelamento riscoCancelamento,
+    String motivoCancelamento,
     ReuniaoResponse reuniao
 ) {
 
@@ -26,6 +27,7 @@ public record AnaliseResponse(
             ProdutoTotvsResponse.fromEntity(analiseReuniao.getProdutoTotvs()),
             analiseReuniao.getSentimentoReuniao(),
             analiseReuniao.getRiscoCancelamento(),
+            analiseReuniao.getMotivoCancelamento(),
             ReuniaoResponse.fromEntity(analiseReuniao.getReuniao())
         );
     }

@@ -61,4 +61,7 @@ public class AnaliseReuniao extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private RiscoCancelamento riscoCancelamento;
 
+    @Lob
+    @Column(name = "motivo_cancelamento")
+    private String motivoCancelamento;
 }

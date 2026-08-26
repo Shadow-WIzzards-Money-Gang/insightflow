@@ -41,6 +41,7 @@ CREATE TABLE analises_reuniao (
     nota               NUMBER(10, 0) NOT NULL,
     sentimento_reuniao VARCHAR2(255 CHAR) NOT NULL,
     risco_cancelamento VARCHAR2(255 CHAR) NOT NULL,
+    motivo_cancelamento CLOB,
     produto_totvs_id   NUMBER(19, 0) NOT NULL,
     reuniao_id         NUMBER(19, 0) NOT NULL,
     CONSTRAINT pk_analises_reuniao PRIMARY KEY (id),

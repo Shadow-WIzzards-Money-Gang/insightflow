@@ -1,50 +1,50 @@
-INSERT INTO produtos_totvs (nome, categoria) 
-VALUES ('Protheus', 'ERP');
+INSERT INTO produtos_totvs (nome, categoria, created_at)
+VALUES ('Protheus', 'ERP', SYSTIMESTAMP);
 
-INSERT INTO produtos_totvs (nome, categoria) 
-VALUES ('RM', 'ERP');
+INSERT INTO produtos_totvs (nome, categoria, created_at)
+VALUES ('RM', 'ERP', SYSTIMESTAMP);
 
-INSERT INTO produtos_totvs (nome, categoria) 
-VALUES ('Datasul', 'ERP');
+INSERT INTO produtos_totvs (nome, categoria, created_at)
+VALUES ('Datasul', 'ERP', SYSTIMESTAMP);
 
-INSERT INTO produtos_totvs (nome, categoria) 
-VALUES ('Logix', 'ERP');
+INSERT INTO produtos_totvs (nome, categoria, created_at)
+VALUES ('Logix', 'ERP', SYSTIMESTAMP);
 
-INSERT INTO produtos_totvs (nome, categoria) 
-VALUES ('RH Clock In', 'RH');
+INSERT INTO produtos_totvs (nome, categoria, created_at)
+VALUES ('RH Clock In', 'RH', SYSTIMESTAMP);
 
-INSERT INTO produtos_totvs (nome, categoria) 
-VALUES ('RH Performance', 'RH');
+INSERT INTO produtos_totvs (nome, categoria, created_at)
+VALUES ('RH Performance', 'RH', SYSTIMESTAMP);
 
-INSERT INTO produtos_totvs (nome, categoria) 
-VALUES ('RD Station', 'Marketing e CRM');
+INSERT INTO produtos_totvs (nome, categoria, created_at)
+VALUES ('RD Station', 'Marketing e CRM', SYSTIMESTAMP);
 
-INSERT INTO produtos_totvs (nome, categoria) 
-VALUES ('TOTVS Assinatura Eletronica', 'Assinatura');
+INSERT INTO produtos_totvs (nome, categoria, created_at)
+VALUES ('TOTVS Assinatura Eletronica', 'Assinatura', SYSTIMESTAMP);
 
-INSERT INTO produtos_totvs (nome, categoria) 
-VALUES ('TOTVS Analytics', 'BI e Analytics');
+INSERT INTO produtos_totvs (nome, categoria, created_at)
+VALUES ('TOTVS Analytics', 'BI e Analytics', SYSTIMESTAMP);
 
-INSERT INTO produtos_totvs (nome, categoria) 
-VALUES ('Fluig', 'Workflow e BPM');
+INSERT INTO produtos_totvs (nome, categoria, created_at)
+VALUES ('Fluig', 'Workflow e BPM', SYSTIMESTAMP);
 
-INSERT INTO produtos_totvs (nome, categoria) 
-VALUES ('TOTVS Automacao Fiscal', 'Fiscal');
+INSERT INTO produtos_totvs (nome, categoria, created_at)
+VALUES ('TOTVS Automacao Fiscal', 'Fiscal', SYSTIMESTAMP);
 
-INSERT INTO produtos_totvs (nome, categoria) 
-VALUES ('TOTVS Educacional', 'Educacao');
+INSERT INTO produtos_totvs (nome, categoria, created_at)
+VALUES ('TOTVS Educacional', 'Educacao', SYSTIMESTAMP);
 
-INSERT INTO produtos_totvs (nome, categoria) 
-VALUES ('Outros', 'Outros');
+INSERT INTO produtos_totvs (nome, categoria, created_at)
+VALUES ('Outros', 'Outros', SYSTIMESTAMP);
 
-INSERT INTO segmentos_clientes (nome) VALUES ('Saúde');
-INSERT INTO segmentos_clientes (nome) VALUES ('Distribuição');
-INSERT INTO segmentos_clientes (nome) VALUES ('Manufatura');
-INSERT INTO segmentos_clientes (nome) VALUES ('Serviços');
-INSERT INTO segmentos_clientes (nome) VALUES ('Contrução e Projetos');
-INSERT INTO segmentos_clientes (nome) VALUES ('Educacional');
-INSERT INTO segmentos_clientes (nome) VALUES ('Agroindústria');
-INSERT INTO segmentos_clientes (nome) VALUES ('Logistica');
-INSERT INTO segmentos_clientes (nome) VALUES ('Supermercados');
-INSERT INTO segmentos_clientes (nome) VALUES ('Varejo');
-INSERT INTO segmentos_clientes (nome) VALUES ('Outro');
+INSERT INTO segmentos_clientes (nome, created_at) VALUES ('Saúde', SYSTIMESTAMP);
+INSERT INTO segmentos_clientes (nome, created_at) VALUES ('Distribuição', SYSTIMESTAMP);
+INSERT INTO segmentos_clientes (nome, created_at) VALUES ('Manufatura', SYSTIMESTAMP);
+INSERT INTO segmentos_clientes (nome, created_at) VALUES ('Serviços', SYSTIMESTAMP);
+INSERT INTO segmentos_clientes (nome, created_at) VALUES ('Contrução e Projetos', SYSTIMESTAMP);
+INSERT INTO segmentos_clientes (nome, created_at) VALUES ('Educacional', SYSTIMESTAMP);
+INSERT INTO segmentos_clientes (nome, created_at) VALUES ('Agroindústria', SYSTIMESTAMP);
+INSERT INTO segmentos_clientes (nome, created_at) VALUES ('Logistica', SYSTIMESTAMP);
+INSERT INTO segmentos_clientes (nome, created_at) VALUES ('Supermercados', SYSTIMESTAMP);
+INSERT INTO segmentos_clientes (nome, created_at) VALUES ('Varejo', SYSTIMESTAMP);
+INSERT INTO segmentos_clientes (nome, created_at) VALUES ('Outro', SYSTIMESTAMP);
