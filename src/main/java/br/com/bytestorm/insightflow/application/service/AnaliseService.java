@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.bytestorm.insightflow.application.dto.ia.AnaliseIAResult;
 import br.com.bytestorm.insightflow.application.dto.request.AnaliseRequest;
 import br.com.bytestorm.insightflow.application.dto.response.AnaliseResponse;
+import br.com.bytestorm.insightflow.application.dto.response.MetricasResponse;
 import br.com.bytestorm.insightflow.domain.entity.AnaliseReuniao;
 import br.com.bytestorm.insightflow.domain.entity.Reuniao;
 import br.com.bytestorm.insightflow.domain.enums.RiscoCancelamento;
@@ -83,6 +84,40 @@ public class AnaliseService {
             return null;
         }
         return (motivoCancelamento == null || motivoCancelamento.isBlank()) ? null : motivoCancelamento;
+    }
+
+    public MetricasResponse buscarMetricas() {
+        return new MetricasResponse(
+            this.analiseReuniaoRepository.count(),
+            this.analiseReuniaoRepository.countByRiscoCancelamento(RiscoCancelamento.MUITO_ALTO),
+            this.analiseReuniaoRepository.countByRiscoCancelamento(RiscoCancelamento.ALTO),
+            this.analiseReuniaoRepository.countByRiscoCancelamento(RiscoCancelamento.MODERADO),
+            this.analiseReuniaoRepository.countByRiscoCancelamento(RiscoCancelamento.BAIXO),
+            this.calcularMediaSentimento(),
+            this.calcularMediaNota()
+        );
+    }
+
+    public SentimentoReuniao calcularMediaSentimento() {
+        long positivos = this.analiseReuniaoRepository.countBySentimentoReuniao(SentimentoReuniao.POSITIVO);
+        long neutros = this.analiseReuniaoRepository.countBySentimentoReuniao(SentimentoReuniao.NEUTRO);
+        long negativos = this.analiseReuniaoRepository.countBySentimentoReuniao(SentimentoReuniao.NEGATIVO);
+        long total = positivos + neutros + negativos;
+
+        if (total == 0) {
+            return SentimentoReuniao.fromValor(0.0);
+        }
+
+        double somaValores = (positivos * SentimentoReuniao.POSITIVO.getValor())
+            + (neutros * SentimentoReuniao.NEUTRO.getValor())
+            + (negativos * SentimentoReuniao.NEGATIVO.getValor());
+
+        return SentimentoReuniao.fromValor(somaValores / total);
+    }
+
+    public Double calcularMediaNota() {
+        Double media = this.analiseReuniaoRepository.calcularMediaNota();
+        return media != null ? media : 0.0;
     }
 
     public Page<AnaliseResponse> buscarAnalises(Pageable pageable) {

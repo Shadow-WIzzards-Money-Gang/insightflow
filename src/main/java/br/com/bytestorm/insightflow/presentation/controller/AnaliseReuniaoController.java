@@ -13,8 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.bytestorm.insightflow.application.dto.request.AnaliseRequest;
 import br.com.bytestorm.insightflow.application.dto.response.AnaliseResponse;
+import br.com.bytestorm.insightflow.application.dto.response.MetricasResponse;
 import br.com.bytestorm.insightflow.application.service.AnaliseService;
 import jakarta.validation.Valid;
+
 
 @RestController
 @RequestMapping("/api/analises")
@@ -40,5 +42,11 @@ public class AnaliseReuniaoController {
     public ResponseEntity<AnaliseResponse> buscarAnalisePorId(@PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.OK).body(this.analiseService.buscarAnalisePorId(id));
     }
+
+    @GetMapping("/metricas")
+    public ResponseEntity<MetricasResponse> buscarMetricas() {
+        return ResponseEntity.status(HttpStatus.OK).body(this.analiseService.buscarMetricas());
+    }
+    
 
 }
