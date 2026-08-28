@@ -35,6 +35,13 @@ public class SegmentoClienteService {
                 .toList();
     }
 
+    public SegmentoClienteResponse buscarPorNome(String nome) {
+        SegmentoCliente segmento = segmentoClienteRepository.findByNomeIgnoreCase(nome).orElseThrow(
+            () -> new SegmentoNaoEncontradoException()
+        );
+        return SegmentoClienteResponse.fromEntity(segmento);
+    }
+
     public void deletarSegmentoCliente(Long id) {
         SegmentoCliente segmento = buscarPorId(id);
         segmentoClienteRepository.delete(segmento);

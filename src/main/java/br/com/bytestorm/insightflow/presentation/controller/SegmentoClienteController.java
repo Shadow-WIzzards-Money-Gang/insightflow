@@ -32,6 +32,11 @@ public class SegmentoClienteController {
         return ResponseEntity.status(HttpStatus.OK).body(segmentoClienteService.buscarTodos());
     }
 
+    @GetMapping("/{nome}")
+    public ResponseEntity<SegmentoClienteResponse> buscarPorNome(@PathVariable String nome) {
+        return ResponseEntity.status(HttpStatus.OK).body(segmentoClienteService.buscarPorNome(nome));
+    }
+
     @PostMapping
     public ResponseEntity<Void> cadastrarSegmentoCliente(@RequestBody @Valid SegmentoClienteRequest request) {
         segmentoClienteService.cadastrarSegmentoCliente(request);

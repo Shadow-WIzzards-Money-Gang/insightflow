@@ -37,13 +37,13 @@ VALUES ('TOTVS Educacional', 'Educacao', SYSTIMESTAMP);
 INSERT INTO produtos_totvs (nome, categoria, created_at)
 VALUES ('Outros', 'Outros', SYSTIMESTAMP);
 
-INSERT INTO segmentos_clientes (nome, created_at) VALUES ('Saúde', SYSTIMESTAMP);
-INSERT INTO segmentos_clientes (nome, created_at) VALUES ('Distribuição', SYSTIMESTAMP);
+INSERT INTO segmentos_clientes (nome, created_at) VALUES ('Saude', SYSTIMESTAMP);
+INSERT INTO segmentos_clientes (nome, created_at) VALUES ('Distribuicao', SYSTIMESTAMP);
 INSERT INTO segmentos_clientes (nome, created_at) VALUES ('Manufatura', SYSTIMESTAMP);
-INSERT INTO segmentos_clientes (nome, created_at) VALUES ('Serviços', SYSTIMESTAMP);
-INSERT INTO segmentos_clientes (nome, created_at) VALUES ('Contrução e Projetos', SYSTIMESTAMP);
+INSERT INTO segmentos_clientes (nome, created_at) VALUES ('Servicos', SYSTIMESTAMP);
+INSERT INTO segmentos_clientes (nome, created_at) VALUES ('Contrucao e Projetos', SYSTIMESTAMP);
 INSERT INTO segmentos_clientes (nome, created_at) VALUES ('Educacional', SYSTIMESTAMP);
-INSERT INTO segmentos_clientes (nome, created_at) VALUES ('Agroindústria', SYSTIMESTAMP);
+INSERT INTO segmentos_clientes (nome, created_at) VALUES ('Agroindustria', SYSTIMESTAMP);
 INSERT INTO segmentos_clientes (nome, created_at) VALUES ('Logistica', SYSTIMESTAMP);
 INSERT INTO segmentos_clientes (nome, created_at) VALUES ('Supermercados', SYSTIMESTAMP);
 INSERT INTO segmentos_clientes (nome, created_at) VALUES ('Varejo', SYSTIMESTAMP);
