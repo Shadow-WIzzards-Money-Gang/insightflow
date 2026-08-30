@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.bytestorm.insightflow.application.dto.ia.AnaliseIAResult;
+import br.com.bytestorm.insightflow.application.dto.request.AnaliseFiltroRequest;
 import br.com.bytestorm.insightflow.application.dto.request.AnaliseRequest;
 import br.com.bytestorm.insightflow.application.dto.response.AnaliseResponse;
 import br.com.bytestorm.insightflow.application.dto.response.MetricasResponse;
@@ -20,6 +21,7 @@ import br.com.bytestorm.insightflow.domain.exceptions.reuniao.ReuniaoNaoEncontra
 import br.com.bytestorm.insightflow.helpers.Helpers;
 import br.com.bytestorm.insightflow.infra.ai.AiClient;
 import br.com.bytestorm.insightflow.infra.repository.AnaliseReuniaoRepository;
+import br.com.bytestorm.insightflow.infra.repository.specification.AnaliseReuniaoSpecification;
 
 @Service
 public class AnaliseService {
@@ -120,8 +122,9 @@ public class AnaliseService {
         return media != null ? media : 0.0;
     }
 
-    public Page<AnaliseResponse> buscarAnalises(Pageable pageable) {
-        return this.analiseReuniaoRepository.findAll(pageable)
+    public Page<AnaliseResponse> buscarAnalises(Pageable pageable, AnaliseFiltroRequest filtro) {
+        return this.analiseReuniaoRepository
+            .findAll(AnaliseReuniaoSpecification.comFiltros(filtro), pageable)
             .map((a) -> Helpers.resumirAnalise(a));
     }
 
