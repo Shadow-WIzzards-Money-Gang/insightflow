@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+:root{
+    --primary-bg-color: #0B1829;
+    --secondary-bg-color: #2F445E;
+
+    --primary-text-color: #00B4D8;
+    --secondary-text-color: #ffffff;
+
+    --primary-bg-card-color: #1E3450;
+    --secondary-bg-card-color: #2A1E1E;
+    --tertiary-bg-card-color: #1A2A1E;
+    --fourth-bg-card-color: #30301E;
+
+    --color-error-color: #EF4444;
+    --color-warning-color: #F59E0B;
+    --color-success-color: #10B981;
+}
+
+@theme {
+  --color-body-bg: var(--primary-bg-color);
+  --color-header-bg: var(--secondary-bg-color);
+  --color-footer-bg: var(--secondary-bg-color);
+
+  --color-primary-text: var(--primary-text-color);
+  --color-secondary-text: var(--secondary-text-color);
+
+  --color-primary-bg-color: var(--primary-bg-color);
+  --color-secondary-bg-color: var(--secondary-bg-color);
+
+  --color-primary-bg-card-color: var(--primary-bg-card-color);
+  --color-secondary-bg-card-color: var(--secondary-bg-card-color);
+  --color-tertiary-bg-card-color: var(--tertiary-bg-card-color);
+  --color-fourth-bg-card-color: var(--fourth-bg-card-color);
+
+  --color-error-color: var(--error-color);
+  --color-warning-color: var(--warning-color);
+  --color-success-color: var(--success-color);
+}
