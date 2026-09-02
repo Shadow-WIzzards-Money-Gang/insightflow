@@ -18,6 +18,7 @@ export default function Button({ label, handleClick }) {
             focus:outline-none
             focus-visible:ring-2
             focus-visible:ring-primary-text
+            uppercase
           `}
           onClick={(e) => handleClick?.(e)}
         >

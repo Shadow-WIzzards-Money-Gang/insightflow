@@ -1,6 +1,7 @@
 "use client";
 
-import Button from "@/components/ui/Button";
+import NovaAnaliseButton from "@/components/layout/NovaAnaliseButton";
+import FiltroButton from "@/components/layout/FiltroButton";
 
 export default function Header() {
     return (
@@ -9,9 +10,8 @@ export default function Header() {
                 Insight Flow
             </h1>
             <div className="flex flex-row items-center gap-2">
-                <Button label="Nova Análise" handleClick={() => {
-                    
-                }} />
+                <NovaAnaliseButton />
+                <FiltroButton />
             </div>
         </header>
     );

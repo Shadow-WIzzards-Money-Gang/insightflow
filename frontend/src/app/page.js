@@ -3,42 +3,116 @@
 import { useCallback, useEffect, useState } from "react";
 
 import ReuniaoCard from "@/components/layout/ReuniaoCard";
+import AnaliseDetalhesModal from "@/components/layout/AnaliseDetalhesModal";
 import Card from "@/components/ui/Card";
 import NextPage from "@/components/ui/nextPage";
 import PrevPage from "@/components/ui/prevPage";
 import Loading from "@/components/ui/Loading";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import { getAnalisesReuniao } from "@/services/api";
+import { useFiltros } from "@/context/FiltrosProvider";
 
 const PAGE_SIZE = 10;
 
+const SENTIMENTO_LABEL = {
+  POSITIVO: "Positivo",
+  NEUTRO: "Neutro",
+  NEGATIVO: "Negativo",
+};
+
+const CORES = {
+  verde: {
+    textColor: "text-success-color",
+    bgColor: "bg-tertiary-bg-card-color",
+    borderColor: "border-success-color",
+  },
+  amarelo: {
+    textColor: "text-warning-color",
+    bgColor: "bg-fourth-bg-card-color",
+    borderColor: "border-warning-color",
+  },
+  vermelho: {
+    textColor: "text-error-color",
+    bgColor: "bg-secondary-bg-card-color",
+    borderColor: "border-error-color",
+  },
+  neutra: {
+    textColor: "text-secondary-text",
+    bgColor: "bg-primary-bg-card-color",
+    borderColor: "border-secondary-bg-color",
+  },
+};
+
+const SENTIMENTO_CORES = {
+  POSITIVO: CORES.verde,
+  NEUTRO: CORES.amarelo,
+  NEGATIVO: CORES.vermelho,
+};
+
+// Mesmos limites do SentimentoReuniao.fromValor no backend
+function coresPorNota(nota) {
+  if (nota == null) return CORES.neutra;
+  if (nota >= 8) return CORES.verde;
+  if (nota >= 3) return CORES.amarelo;
+  return CORES.vermelho;
+}
+
 export default function Home() {
+  const { filtros, totalFiltrosAtivos } = useFiltros();
+
   const [analises, setAnalises] = useState([]);
+  const [metricas, setMetricas] = useState(null);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [analiseSelecionada, setAnaliseSelecionada] = useState(null);
 
-  const carregarAnalises = useCallback(async (paginaAtual) => {
+  // Volta para a primeira página sempre que os filtros mudam
+  const [filtrosAnteriores, setFiltrosAnteriores] = useState(filtros);
+  if (filtros !== filtrosAnteriores) {
+    setFiltrosAnteriores(filtros);
+    setPage(0);
+  }
+
+  const carregarAnalises = useCallback(async (paginaAtual, filtrosAtuais) => {
     setLoading(true);
     setError(null);
 
     try {
-      const dados = await getAnalisesReuniao(paginaAtual, PAGE_SIZE);
-      setAnalises(dados.content ?? []);
-      setTotalPages(dados.totalPages ?? 0);
+      const dados = await getAnalisesReuniao(paginaAtual, PAGE_SIZE, filtrosAtuais);
+      setAnalises(dados.analises?.content ?? []);
+      setTotalPages(dados.analises?.totalPages ?? 0);
+      setMetricas(dados.metricas ?? null);
     } catch (e) {
       setError(e.message ?? "Erro inesperado ao carregar as análises.");
       setAnalises([]);
       setTotalPages(0);
+      setMetricas(null);
     } finally {
       setLoading(false);
     }
   }, []);
 
+  const totalChurn =
+    metricas != null
+      ? (metricas.totalRiscoMuitoAlto ?? 0) + (metricas.totalRiscoAlto ?? 0)
+      : null;
+
+  const coresSentimento =
+    (metricas != null && SENTIMENTO_CORES[metricas.sentimentoMedio]) || CORES.neutra;
+  const coresNota =
+    metricas != null ? coresPorNota(metricas.notaMedia) : CORES.neutra;
+
   useEffect(() => {
-    carregarAnalises(page);
-  }, [page, carregarAnalises]);
+    carregarAnalises(page, filtros);
+  }, [page, filtros, carregarAnalises]);
+
+  useEffect(() => {
+    const recarregar = () => carregarAnalises(page, filtros);
+    window.addEventListener("analise:criada", recarregar);
+    return () => window.removeEventListener("analise:criada", recarregar);
+  }, [page, filtros, carregarAnalises]);
 
   const podeVoltar = page > 0 && !loading;
   const podeAvancar = page < totalPages - 1 && !loading;
@@ -48,32 +122,40 @@ export default function Home() {
 
       <div className="flex flex-row gap-2 justify-center">
         <Card
-          value="123"
+          value={metricas != null ? String(metricas.totalReunioes ?? 0) : "—"}
           label="Reuniões analisadas"
           textColor="text-primary-text"
           bgColor="bg-primary-bg-card-color"
           borderColor="border-primary-text"
         />
         <Card
-          value="123"
+          value={totalChurn != null ? String(totalChurn) : "—"}
           label="Risco de Churn"
           textColor="text-error-color"
           bgColor="bg-secondary-bg-card-color"
           borderColor="border-error-color"
         />
         <Card
-          value="Positivo"
+          value={
+            metricas != null
+              ? SENTIMENTO_LABEL[metricas.sentimentoMedio] ?? "—"
+              : "—"
+          }
           label="Sentimento médio"
-          textColor="text-success-color"
-          bgColor="bg-tertiary-bg-card-color"
-          borderColor="border-success-color"
+          textColor={coresSentimento.textColor}
+          bgColor={coresSentimento.bgColor}
+          borderColor={coresSentimento.borderColor}
         />
         <Card
-          value="5.6"
+          value={
+            metricas != null && metricas.notaMedia != null
+              ? metricas.notaMedia.toFixed(1)
+              : "—"
+          }
           label="Score médio"
-          textColor="text-warning-color"
-          bgColor="bg-fourth-bg-card-color"
-          borderColor="border-warning-color"
+          textColor={coresNota.textColor}
+          bgColor={coresNota.bgColor}
+          borderColor={coresNota.borderColor}
         />
       </div>
 
@@ -99,7 +181,9 @@ export default function Home() {
 
         {!loading && !error && analises.length === 0 && (
           <p className="text-secondary-text text-center py-16">
-            Nenhuma análise encontrada.
+            {totalFiltrosAtivos > 0
+              ? "Nenhuma análise encontrada para os filtros aplicados."
+              : "Nenhuma análise encontrada."}
           </p>
         )}
 
@@ -139,11 +223,19 @@ export default function Home() {
                 sentimento={analise.sentimentoReuniao}
                 risco={analise.riscoCancelamento}
                 score={analise.nota}
+                onClick={() => setAnaliseSelecionada(analise.id)}
               />
             ))}
           </div>
         )}
       </section>
+
+      {analiseSelecionada != null && (
+        <AnaliseDetalhesModal
+          id={analiseSelecionada}
+          onClose={() => setAnaliseSelecionada(null)}
+        />
+      )}
 
     </div>
   );

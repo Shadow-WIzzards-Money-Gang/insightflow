@@ -1,16 +1,20 @@
 package br.com.bytestorm.insightflow.application.service;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.bytestorm.insightflow.application.dto.ia.AnaliseIAResult;
 import br.com.bytestorm.insightflow.application.dto.request.AnaliseFiltroRequest;
 import br.com.bytestorm.insightflow.application.dto.request.AnaliseRequest;
+import br.com.bytestorm.insightflow.application.dto.response.AnaliseComMetricasResponse;
 import br.com.bytestorm.insightflow.application.dto.response.AnaliseResponse;
 import br.com.bytestorm.insightflow.application.dto.response.MetricasResponse;
 import br.com.bytestorm.insightflow.domain.entity.AnaliseReuniao;
@@ -88,22 +92,46 @@ public class AnaliseService {
         return (motivoCancelamento == null || motivoCancelamento.isBlank()) ? null : motivoCancelamento;
     }
 
-    public MetricasResponse buscarMetricas() {
+    public AnaliseComMetricasResponse buscarAnalises(Pageable pageable, AnaliseFiltroRequest filtro) {
+        Specification<AnaliseReuniao> spec = AnaliseReuniaoSpecification.comFiltros(filtro);
+
+        Page<AnaliseResponse> analises = this.analiseReuniaoRepository
+            .findAll(spec, pageable)
+            .map((a) -> Helpers.resumirAnalise(a));
+
+        MetricasResponse metricas = calcularMetricas(this.analiseReuniaoRepository.findAll(spec));
+
+        return new AnaliseComMetricasResponse(metricas, analises);
+    }
+
+    private MetricasResponse calcularMetricas(List<AnaliseReuniao> analises) {
         return new MetricasResponse(
-            this.analiseReuniaoRepository.count(),
-            this.analiseReuniaoRepository.countByRiscoCancelamento(RiscoCancelamento.MUITO_ALTO),
-            this.analiseReuniaoRepository.countByRiscoCancelamento(RiscoCancelamento.ALTO),
-            this.analiseReuniaoRepository.countByRiscoCancelamento(RiscoCancelamento.MODERADO),
-            this.analiseReuniaoRepository.countByRiscoCancelamento(RiscoCancelamento.BAIXO),
-            this.calcularMediaSentimento(),
-            this.calcularMediaNota()
+            (long) analises.size(),
+            contarPorRisco(analises, RiscoCancelamento.MUITO_ALTO),
+            contarPorRisco(analises, RiscoCancelamento.ALTO),
+            contarPorRisco(analises, RiscoCancelamento.MODERADO),
+            contarPorRisco(analises, RiscoCancelamento.BAIXO),
+            calcularMediaSentimento(analises),
+            calcularMediaNota(analises)
         );
     }
 
-    public SentimentoReuniao calcularMediaSentimento() {
-        long positivos = this.analiseReuniaoRepository.countBySentimentoReuniao(SentimentoReuniao.POSITIVO);
-        long neutros = this.analiseReuniaoRepository.countBySentimentoReuniao(SentimentoReuniao.NEUTRO);
-        long negativos = this.analiseReuniaoRepository.countBySentimentoReuniao(SentimentoReuniao.NEGATIVO);
+    private Long contarPorRisco(List<AnaliseReuniao> analises, RiscoCancelamento risco) {
+        return analises.stream()
+            .filter(a -> a.getRiscoCancelamento() == risco)
+            .count();
+    }
+
+    private Long contarPorSentimento(List<AnaliseReuniao> analises, SentimentoReuniao sentimento) {
+        return analises.stream()
+            .filter(a -> a.getSentimentoReuniao() == sentimento)
+            .count();
+    }
+
+    private SentimentoReuniao calcularMediaSentimento(List<AnaliseReuniao> analises) {
+        long positivos = contarPorSentimento(analises, SentimentoReuniao.POSITIVO);
+        long neutros = contarPorSentimento(analises, SentimentoReuniao.NEUTRO);
+        long negativos = contarPorSentimento(analises, SentimentoReuniao.NEGATIVO);
         long total = positivos + neutros + negativos;
 
         if (total == 0) {
@@ -117,15 +145,13 @@ public class AnaliseService {
         return SentimentoReuniao.fromValor(somaValores / total);
     }
 
-    public Double calcularMediaNota() {
-        Double media = this.analiseReuniaoRepository.calcularMediaNota();
-        return media != null ? media : 0.0;
-    }
-
-    public Page<AnaliseResponse> buscarAnalises(Pageable pageable, AnaliseFiltroRequest filtro) {
-        return this.analiseReuniaoRepository
-            .findAll(AnaliseReuniaoSpecification.comFiltros(filtro), pageable)
-            .map((a) -> Helpers.resumirAnalise(a));
+    private Double calcularMediaNota(List<AnaliseReuniao> analises) {
+        return analises.stream()
+            .map(AnaliseReuniao::getNota)
+            .filter(Objects::nonNull)
+            .mapToInt(Integer::intValue)
+            .average()
+            .orElse(0.0);
     }
 
     public AnaliseResponse buscarAnalisePorId(Long id) {
