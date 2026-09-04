@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import ReuniaoCard from "@/components/layout/ReuniaoCard";
 import AnaliseDetalhesModal from "@/components/layout/AnaliseDetalhesModal";
+import GraficosSection from "@/components/layout/GraficosSection";
 import Card from "@/components/ui/Card";
 import NextPage from "@/components/ui/nextPage";
 import PrevPage from "@/components/ui/prevPage";
@@ -158,6 +159,8 @@ export default function Home() {
           borderColor={coresNota.borderColor}
         />
       </div>
+
+      <GraficosSection metricas={metricas} loading={loading} />
 
       <section className="flex flex-col gap-3">
         <div className="flex flex-row items-center justify-between">

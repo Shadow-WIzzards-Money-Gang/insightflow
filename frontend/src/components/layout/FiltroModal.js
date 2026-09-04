@@ -5,7 +5,17 @@ import toast from "react-hot-toast";
 
 import Modal from "@/components/ui/Modal";
 import { getProdutosTotvs, getSegmentosClientes } from "@/services/api";
-import { useFiltros, FILTROS_VAZIOS } from "@/context/FiltrosProvider";
+import { useFiltros } from "@/context/FiltrosProvider";
+
+const CAMPOS = ["produtos", "segmentos", "riscos", "sentimentos"];
+
+function mesmosFiltros(a, b) {
+    return CAMPOS.every(
+        (campo) =>
+            a[campo].length === b[campo].length &&
+            a[campo].every((valor) => b[campo].includes(valor))
+    );
+}
 
 const RISCOS = [
     { valor: "MUITO_ALTO", label: "Muito alto" },
@@ -119,20 +129,25 @@ export default function FiltroModal({ onClose }) {
 
     const removerChip = (campo, valor) => alternar(campo, valor);
 
-    const aplicar = () => {
-        aplicarFiltros(rascunho);
-        toast.success(
-            totalRascunho > 0
-                ? `Filtro aplicado (${totalRascunho}).`
-                : "Nenhum filtro aplicado."
-        );
+    // Fechar o modal (clicar fora, Esc, X ou "Filtrar") aplica o que estiver selecionado
+    const fecharAplicando = () => {
+        if (!mesmosFiltros(rascunho, filtros)) {
+            aplicarFiltros(rascunho);
+            toast.success(
+                totalRascunho > 0
+                    ? `Filtro aplicado (${totalRascunho}).`
+                    : "Filtros limpos."
+            );
+        }
         onClose?.();
     };
 
     const limpar = () => {
-        setRascunho(FILTROS_VAZIOS);
-        limparFiltros();
-        toast.success("Filtros limpos.");
+        if (totalFiltrosAtivos > 0 || totalRascunho > 0) {
+            limparFiltros();
+            toast.success("Filtros limpos.");
+        }
+        onClose?.();
     };
 
     const chips = [
@@ -153,7 +168,7 @@ export default function FiltroModal({ onClose }) {
     const nadaParaLimpar = totalRascunho === 0 && totalFiltrosAtivos === 0;
 
     return (
-        <Modal title="Filtrar" onClose={onClose}>
+        <Modal title="Filtrar" onClose={fecharAplicando}>
             <div className="flex flex-col gap-5">
                 <div className="flex flex-col gap-2 rounded border-2 border-secondary-bg-color bg-primary-bg-card-color px-3 py-2">
                     <span className="text-xs font-medium uppercase tracking-wide text-primary-text">
@@ -216,7 +231,11 @@ export default function FiltroModal({ onClose }) {
                     onToggle={alternar}
                 />
 
-                <div className="mt-1 flex items-center justify-between gap-2">
+                <p className="text-xs text-secondary-text opacity-60">
+                    Fechar o modal (clicar fora, Esc ou X) já aplica o que estiver selecionado.
+                </p>
+
+                <div className="-mt-2 flex items-center justify-between gap-2">
                     <button
                         type="button"
                         onClick={limpar}
@@ -231,7 +250,7 @@ export default function FiltroModal({ onClose }) {
                     </button>
                     <button
                         type="button"
-                        onClick={aplicar}
+                        onClick={fecharAplicando}
                         className={`
                             rounded bg-primary-text px-4 py-2 text-sm font-medium
                             text-primary-bg-card-color transition-opacity hover:opacity-90
