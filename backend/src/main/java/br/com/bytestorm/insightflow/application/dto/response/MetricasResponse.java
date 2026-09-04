@@ -1,5 +1,7 @@
 package br.com.bytestorm.insightflow.application.dto.response;
 
+import java.util.List;
+
 import br.com.bytestorm.insightflow.domain.enums.SentimentoReuniao;
 
 public record MetricasResponse(
@@ -9,7 +11,12 @@ public record MetricasResponse(
         Long totalRiscoModerado,
         Long totalRiscoBaixo,
         SentimentoReuniao sentimentoMedio,
-        Double notaMedia
+        Double notaMedia,
+        Long totalSentimentoPositivo,
+        Long totalSentimentoNeutro,
+        Long totalSentimentoNegativo,
+        List<DistribuicaoRiscoResponse> riscoPorProduto,
+        List<DistribuicaoRiscoResponse> riscoPorSegmento
 ) {
 
 }

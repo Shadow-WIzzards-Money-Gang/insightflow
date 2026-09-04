@@ -1,6 +1,8 @@
 package br.com.bytestorm.insightflow.application.service;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -16,6 +18,7 @@ import br.com.bytestorm.insightflow.application.dto.request.AnaliseFiltroRequest
 import br.com.bytestorm.insightflow.application.dto.request.AnaliseRequest;
 import br.com.bytestorm.insightflow.application.dto.response.AnaliseComMetricasResponse;
 import br.com.bytestorm.insightflow.application.dto.response.AnaliseResponse;
+import br.com.bytestorm.insightflow.application.dto.response.DistribuicaoRiscoResponse;
 import br.com.bytestorm.insightflow.application.dto.response.MetricasResponse;
 import br.com.bytestorm.insightflow.domain.entity.AnaliseReuniao;
 import br.com.bytestorm.insightflow.domain.entity.Reuniao;
@@ -36,8 +39,8 @@ public class AnaliseService {
     private final ProdutoTotvsService produtoTotvsService;
 
     public AnaliseService(
-        AiClient aiClient, ReuniaoService reuniaoService, 
-        ProdutoTotvsService produtoTotvsService, 
+        AiClient aiClient, ReuniaoService reuniaoService,
+        ProdutoTotvsService produtoTotvsService,
         AnaliseReuniaoRepository analiseReuniaoRepository
     ) {
         this.aiClient = aiClient;
@@ -92,6 +95,7 @@ public class AnaliseService {
         return (motivoCancelamento == null || motivoCancelamento.isBlank()) ? null : motivoCancelamento;
     }
 
+    @Transactional(readOnly = true)
     public AnaliseComMetricasResponse buscarAnalises(Pageable pageable, AnaliseFiltroRequest filtro) {
         Specification<AnaliseReuniao> spec = AnaliseReuniaoSpecification.comFiltros(filtro);
 
@@ -112,8 +116,47 @@ public class AnaliseService {
             contarPorRisco(analises, RiscoCancelamento.MODERADO),
             contarPorRisco(analises, RiscoCancelamento.BAIXO),
             calcularMediaSentimento(analises),
-            calcularMediaNota(analises)
+            calcularMediaNota(analises),
+            contarPorSentimento(analises, SentimentoReuniao.POSITIVO),
+            contarPorSentimento(analises, SentimentoReuniao.NEUTRO),
+            contarPorSentimento(analises, SentimentoReuniao.NEGATIVO),
+            distribuirRiscoPorProduto(analises),
+            distribuirRiscoPorSegmento(analises)
         );
+    }
+
+    private List<DistribuicaoRiscoResponse> distribuirRiscoPorProduto(List<AnaliseReuniao> analises) {
+        Map<String, List<AnaliseReuniao>> porProduto = analises.stream()
+            .filter(a -> a.getProdutoTotvs() != null)
+            .collect(Collectors.groupingBy(a -> a.getProdutoTotvs().getNome()));
+
+        return distribuirRisco(porProduto);
+    }
+
+    private List<DistribuicaoRiscoResponse> distribuirRiscoPorSegmento(List<AnaliseReuniao> analises) {
+        Map<String, List<AnaliseReuniao>> porSegmento = analises.stream()
+            .filter(a -> a.getReuniao() != null && a.getReuniao().getSegmentoCliente() != null)
+            .collect(Collectors.groupingBy(a -> a.getReuniao().getSegmentoCliente().getNome()));
+
+        return distribuirRisco(porSegmento);
+    }
+
+    private List<DistribuicaoRiscoResponse> distribuirRisco(Map<String, List<AnaliseReuniao>> grupos) {
+        return grupos.entrySet().stream()
+            .map(entrada -> {
+                List<AnaliseReuniao> lista = entrada.getValue();
+                return new DistribuicaoRiscoResponse(
+                    entrada.getKey(),
+                    (long) lista.size(),
+                    contarPorRisco(lista, RiscoCancelamento.MUITO_ALTO),
+                    contarPorRisco(lista, RiscoCancelamento.ALTO),
+                    contarPorRisco(lista, RiscoCancelamento.MODERADO),
+                    contarPorRisco(lista, RiscoCancelamento.BAIXO)
+                );
+            })
+            .sorted(Comparator.comparingLong(DistribuicaoRiscoResponse::total).reversed()
+                .thenComparing(DistribuicaoRiscoResponse::rotulo))
+            .toList();
     }
 
     private Long contarPorRisco(List<AnaliseReuniao> analises, RiscoCancelamento risco) {
