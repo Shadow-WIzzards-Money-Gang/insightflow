@@ -105,6 +105,15 @@ export default function Home() {
   const coresNota =
     metricas != null ? coresPorNota(metricas.notaMedia) : CORES.neutra;
 
+  // Soma de risco moderado + alto + muito alto, como no backend (DistribuicaoRiscoResponse.totalCritico)
+  const totalCritico = (item) =>
+    item != null
+      ? (item.muitoAlto ?? 0) + (item.alto ?? 0) + (item.moderado ?? 0)
+      : 0;
+
+  const produtoCritico = metricas?.produtoMaisCritico ?? null;
+  const segmentoCritico = metricas?.segmentoMaisCritico ?? null;
+
   useEffect(() => {
     carregarAnalises(page, filtros);
   }, [page, filtros, carregarAnalises]);
@@ -157,6 +166,20 @@ export default function Home() {
           textColor={coresNota.textColor}
           bgColor={coresNota.bgColor}
           borderColor={coresNota.borderColor}
+        />
+        <Card
+          value={produtoCritico?.rotulo ?? "—"}
+          label={"Produto mais crítico"}
+          textColor={produtoCritico != null ? CORES.vermelho.textColor : CORES.neutra.textColor}
+          bgColor={produtoCritico != null ? CORES.vermelho.bgColor : CORES.neutra.bgColor}
+          borderColor={produtoCritico != null ? CORES.vermelho.borderColor : CORES.neutra.borderColor}
+        />
+        <Card
+          value={segmentoCritico?.rotulo ?? "—"}
+          label={"Segmento mais crítico"}
+          textColor={segmentoCritico != null ? CORES.vermelho.textColor : CORES.neutra.textColor}
+          bgColor={segmentoCritico != null ? CORES.vermelho.bgColor : CORES.neutra.bgColor}
+          borderColor={segmentoCritico != null ? CORES.vermelho.borderColor : CORES.neutra.borderColor}
         />
       </div>
 

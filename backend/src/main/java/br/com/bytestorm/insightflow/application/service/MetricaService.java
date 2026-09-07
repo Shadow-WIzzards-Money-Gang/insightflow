@@ -39,10 +39,14 @@ public class MetricaService {
         );
     }
 
-    private DistribuicaoRiscoResponse maisCritico(List<DistribuicaoRiscoResponse> distribuicoes) {
+    DistribuicaoRiscoResponse maisCritico(List<DistribuicaoRiscoResponse> distribuicoes) {
         return distribuicoes.stream()
             .filter(d -> d.totalCritico() > 0)
-            .max(Comparator.comparingLong(DistribuicaoRiscoResponse::totalCritico)
+            .max(Comparator.comparingLong(DistribuicaoRiscoResponse::scoreCriticidade)
+                // desempate: quem tem o risco mais severo em maior quantidade
+                .thenComparingLong(DistribuicaoRiscoResponse::muitoAlto)
+                .thenComparingLong(DistribuicaoRiscoResponse::alto)
+                .thenComparingLong(DistribuicaoRiscoResponse::moderado)
                 .thenComparingLong(DistribuicaoRiscoResponse::total)
                 .thenComparing(Comparator.comparing(DistribuicaoRiscoResponse::rotulo).reversed()))
             .orElse(null);

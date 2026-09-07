@@ -1,25 +1,33 @@
-export default function Card({ value, label, textColor, bgColor, borderColor }) {
+export default function Card({
+    value,
+    label,
+    textColor,
+    bgColor,
+    borderColor,
+    valueClassName = "text-6xl",
+}) {
     return (
-        <div 
+        <div
             className={`
                 flex flex-col items-center justify-center relative border-2 w-full h-full min-w-50 min-h-40 rounded-lg
-                ${borderColor} 
+                ${borderColor}
                 ${bgColor}
             `}
         >
-            <p 
+            <p
                     className={`
                     ${textColor}
                     font-bold
-                    text-6xl
+                    text-center px-3
+                    ${valueClassName}
                 `}
             >
                 {value}
             </p>
             <p className={`
                 text-secondary-text
-                absolute bottom-0
-                pb-2
+                absolute bottom-0 w-full px-2
+                pb-2 text-center
             `}>{label}</p>
         </div>
     );
