@@ -17,8 +17,11 @@ import br.com.bytestorm.insightflow.application.dto.response.AnaliseResponse;
 import br.com.bytestorm.insightflow.application.dto.response.MetricasResponse;
 import br.com.bytestorm.insightflow.domain.entity.AnaliseReuniao;
 import br.com.bytestorm.insightflow.domain.entity.Reuniao;
+import br.com.bytestorm.insightflow.domain.entity.ProdutoTotvs;
 import br.com.bytestorm.insightflow.domain.enums.RiscoCancelamento;
 import br.com.bytestorm.insightflow.domain.enums.SentimentoReuniao;
+import br.com.bytestorm.insightflow.domain.exceptions.ia.RespostaIAInvalidaException;
+import br.com.bytestorm.insightflow.domain.exceptions.produtoTotvs.ProdutoNaoEncontradoException;
 import br.com.bytestorm.insightflow.domain.exceptions.reuniao.ReuniaoNaoEncontradaException;
 import br.com.bytestorm.insightflow.helpers.Helpers;
 import br.com.bytestorm.insightflow.infra.ai.AiClient;
@@ -33,18 +36,21 @@ public class AnaliseService {
     private final ReuniaoService reuniaoService;
     private final ProdutoTotvsService produtoTotvsService;
     private final MetricaService metricaService;
+    private final TranscricaoCleaner transcricaoCleaner;
 
     public AnaliseService(
         AiClient aiClient, ReuniaoService reuniaoService,
         ProdutoTotvsService produtoTotvsService,
         AnaliseReuniaoRepository analiseReuniaoRepository,
-        MetricaService metricaService
+        MetricaService metricaService,
+        TranscricaoCleaner transcricaoCleaner
     ) {
         this.aiClient = aiClient;
         this.reuniaoService = reuniaoService;
         this.produtoTotvsService = produtoTotvsService;
         this.analiseReuniaoRepository = analiseReuniaoRepository;
         this.metricaService = metricaService;
+        this.transcricaoCleaner = transcricaoCleaner;
     }
 
     @Transactional
@@ -63,7 +69,9 @@ public class AnaliseService {
                 .map((p) -> p.nome().toUpperCase())
                 .collect(Collectors.joining(", "));
 
-        AnaliseIAResult resultadoIA = aiClient.analisarReuniao(reuniao.getTranscricaoBruta(), produtosDisponiveis);
+        String transcricaoLimpa = transcricaoCleaner.limpar(reuniao.getTranscricaoBruta());
+
+        AnaliseIAResult resultadoIA = aiClient.analisarReuniao(transcricaoLimpa, produtosDisponiveis);
 
         AnaliseReuniao analiseReuniao = converterParaEntidade(resultadoIA, reuniao);
 
@@ -81,9 +89,18 @@ public class AnaliseService {
             .sentimentoReuniao(SentimentoReuniao.fromString(analiseIAResult.sentimentoReuniao().toUpperCase()))
             .riscoCancelamento(riscoCancelamento)
             .motivoCancelamento(extrairMotivoCancelamento(riscoCancelamento, analiseIAResult.motivoCancelamento()))
-            .produtoTotvs(produtoTotvsService.buscarPorNome(analiseIAResult.produtoTotvsNome()))
+            .produtoTotvs(resolverProdutoTotvs(analiseIAResult.produtoTotvsNome()))
             .reuniao(reuniao)
             .build();
+    }
+
+    private ProdutoTotvs resolverProdutoTotvs(String nomeIndicadoPelaIA) {
+        try {
+            return produtoTotvsService.buscarPorNome(nomeIndicadoPelaIA);
+        } catch (ProdutoNaoEncontradoException e) {
+            throw new RespostaIAInvalidaException(
+                "A IA indicou um produto TOTVS que nao existe no catalogo: " + nomeIndicadoPelaIA);
+        }
     }
 
     private String extrairMotivoCancelamento(RiscoCancelamento riscoCancelamento, String motivoCancelamento) {

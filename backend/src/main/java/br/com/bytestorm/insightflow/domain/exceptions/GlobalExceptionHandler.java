@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import br.com.bytestorm.insightflow.application.dto.erro.Error;
 import br.com.bytestorm.insightflow.domain.exceptions.erro.Erro400Exception;
 import br.com.bytestorm.insightflow.domain.exceptions.erro.Erro404Exception;
+import br.com.bytestorm.insightflow.domain.exceptions.erro.Erro502Exception;
+import br.com.bytestorm.insightflow.domain.exceptions.erro.Erro503Exception;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -34,6 +36,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Erro400Exception.class)
     public ResponseEntity<Error> handleErro400(Erro400Exception ex) {
         Error error = new Error(HttpStatus.BAD_REQUEST.value(), List.of(ex.getMessage()));
+        return ResponseEntity.status(error.status()).body(error);
+    }
+
+    @ExceptionHandler(Erro502Exception.class)
+    public ResponseEntity<Error> handleErro502(Erro502Exception ex) {
+        Error error = new Error(HttpStatus.BAD_GATEWAY.value(), List.of(ex.getMessage()));
+        return ResponseEntity.status(error.status()).body(error);
+    }
+
+    @ExceptionHandler(Erro503Exception.class)
+    public ResponseEntity<Error> handleErro503(Erro503Exception ex) {
+        Error error = new Error(HttpStatus.SERVICE_UNAVAILABLE.value(), List.of(ex.getMessage()));
         return ResponseEntity.status(error.status()).body(error);
     }
 }
