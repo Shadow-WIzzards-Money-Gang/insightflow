@@ -828,3 +828,5 @@ FodyWeavers.xsd
 # Additional files built by Visual Studio
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudio,vs,visualstudiocode,intellij
+# script de populate (checkpoint local)
+backend/data/.populate_state.json
