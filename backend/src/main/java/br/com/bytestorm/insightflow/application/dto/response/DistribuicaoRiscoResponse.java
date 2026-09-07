@@ -9,4 +9,7 @@ public record DistribuicaoRiscoResponse(
     Long baixo
 ) {
 
+    public long totalCritico() {
+        return muitoAlto + alto + moderado;
+    }
 }

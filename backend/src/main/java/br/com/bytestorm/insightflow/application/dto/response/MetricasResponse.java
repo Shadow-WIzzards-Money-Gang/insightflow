@@ -16,7 +16,9 @@ public record MetricasResponse(
         Long totalSentimentoNeutro,
         Long totalSentimentoNegativo,
         List<DistribuicaoRiscoResponse> riscoPorProduto,
-        List<DistribuicaoRiscoResponse> riscoPorSegmento
+        List<DistribuicaoRiscoResponse> riscoPorSegmento,
+        DistribuicaoRiscoResponse produtoMaisCritico,
+        DistribuicaoRiscoResponse segmentoMaisCritico
 ) {
 
 }

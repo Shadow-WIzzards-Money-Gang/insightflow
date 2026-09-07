@@ -1,9 +1,5 @@
 package br.com.bytestorm.insightflow.application.service;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -18,7 +14,6 @@ import br.com.bytestorm.insightflow.application.dto.request.AnaliseFiltroRequest
 import br.com.bytestorm.insightflow.application.dto.request.AnaliseRequest;
 import br.com.bytestorm.insightflow.application.dto.response.AnaliseComMetricasResponse;
 import br.com.bytestorm.insightflow.application.dto.response.AnaliseResponse;
-import br.com.bytestorm.insightflow.application.dto.response.DistribuicaoRiscoResponse;
 import br.com.bytestorm.insightflow.application.dto.response.MetricasResponse;
 import br.com.bytestorm.insightflow.domain.entity.AnaliseReuniao;
 import br.com.bytestorm.insightflow.domain.entity.Reuniao;
@@ -37,16 +32,19 @@ public class AnaliseService {
     private final AiClient aiClient;
     private final ReuniaoService reuniaoService;
     private final ProdutoTotvsService produtoTotvsService;
+    private final MetricaService metricaService;
 
     public AnaliseService(
         AiClient aiClient, ReuniaoService reuniaoService,
         ProdutoTotvsService produtoTotvsService,
-        AnaliseReuniaoRepository analiseReuniaoRepository
+        AnaliseReuniaoRepository analiseReuniaoRepository,
+        MetricaService metricaService
     ) {
         this.aiClient = aiClient;
         this.reuniaoService = reuniaoService;
         this.produtoTotvsService = produtoTotvsService;
         this.analiseReuniaoRepository = analiseReuniaoRepository;
+        this.metricaService = metricaService;
     }
 
     @Transactional
@@ -103,98 +101,9 @@ public class AnaliseService {
             .findAll(spec, pageable)
             .map((a) -> Helpers.resumirAnalise(a));
 
-        MetricasResponse metricas = calcularMetricas(this.analiseReuniaoRepository.findAll(spec));
+        MetricasResponse metricas = metricaService.calcularMetricas(this.analiseReuniaoRepository.findAll(spec));
 
         return new AnaliseComMetricasResponse(metricas, analises);
-    }
-
-    private MetricasResponse calcularMetricas(List<AnaliseReuniao> analises) {
-        return new MetricasResponse(
-            (long) analises.size(),
-            contarPorRisco(analises, RiscoCancelamento.MUITO_ALTO),
-            contarPorRisco(analises, RiscoCancelamento.ALTO),
-            contarPorRisco(analises, RiscoCancelamento.MODERADO),
-            contarPorRisco(analises, RiscoCancelamento.BAIXO),
-            calcularMediaSentimento(analises),
-            calcularMediaNota(analises),
-            contarPorSentimento(analises, SentimentoReuniao.POSITIVO),
-            contarPorSentimento(analises, SentimentoReuniao.NEUTRO),
-            contarPorSentimento(analises, SentimentoReuniao.NEGATIVO),
-            distribuirRiscoPorProduto(analises),
-            distribuirRiscoPorSegmento(analises)
-        );
-    }
-
-    private List<DistribuicaoRiscoResponse> distribuirRiscoPorProduto(List<AnaliseReuniao> analises) {
-        Map<String, List<AnaliseReuniao>> porProduto = analises.stream()
-            .filter(a -> a.getProdutoTotvs() != null)
-            .collect(Collectors.groupingBy(a -> a.getProdutoTotvs().getNome()));
-
-        return distribuirRisco(porProduto);
-    }
-
-    private List<DistribuicaoRiscoResponse> distribuirRiscoPorSegmento(List<AnaliseReuniao> analises) {
-        Map<String, List<AnaliseReuniao>> porSegmento = analises.stream()
-            .filter(a -> a.getReuniao() != null && a.getReuniao().getSegmentoCliente() != null)
-            .collect(Collectors.groupingBy(a -> a.getReuniao().getSegmentoCliente().getNome()));
-
-        return distribuirRisco(porSegmento);
-    }
-
-    private List<DistribuicaoRiscoResponse> distribuirRisco(Map<String, List<AnaliseReuniao>> grupos) {
-        return grupos.entrySet().stream()
-            .map(entrada -> {
-                List<AnaliseReuniao> lista = entrada.getValue();
-                return new DistribuicaoRiscoResponse(
-                    entrada.getKey(),
-                    (long) lista.size(),
-                    contarPorRisco(lista, RiscoCancelamento.MUITO_ALTO),
-                    contarPorRisco(lista, RiscoCancelamento.ALTO),
-                    contarPorRisco(lista, RiscoCancelamento.MODERADO),
-                    contarPorRisco(lista, RiscoCancelamento.BAIXO)
-                );
-            })
-            .sorted(Comparator.comparingLong(DistribuicaoRiscoResponse::total).reversed()
-                .thenComparing(DistribuicaoRiscoResponse::rotulo))
-            .toList();
-    }
-
-    private Long contarPorRisco(List<AnaliseReuniao> analises, RiscoCancelamento risco) {
-        return analises.stream()
-            .filter(a -> a.getRiscoCancelamento() == risco)
-            .count();
-    }
-
-    private Long contarPorSentimento(List<AnaliseReuniao> analises, SentimentoReuniao sentimento) {
-        return analises.stream()
-            .filter(a -> a.getSentimentoReuniao() == sentimento)
-            .count();
-    }
-
-    private SentimentoReuniao calcularMediaSentimento(List<AnaliseReuniao> analises) {
-        long positivos = contarPorSentimento(analises, SentimentoReuniao.POSITIVO);
-        long neutros = contarPorSentimento(analises, SentimentoReuniao.NEUTRO);
-        long negativos = contarPorSentimento(analises, SentimentoReuniao.NEGATIVO);
-        long total = positivos + neutros + negativos;
-
-        if (total == 0) {
-            return SentimentoReuniao.fromValor(0.0);
-        }
-
-        double somaValores = (positivos * SentimentoReuniao.POSITIVO.getValor())
-            + (neutros * SentimentoReuniao.NEUTRO.getValor())
-            + (negativos * SentimentoReuniao.NEGATIVO.getValor());
-
-        return SentimentoReuniao.fromValor(somaValores / total);
-    }
-
-    private Double calcularMediaNota(List<AnaliseReuniao> analises) {
-        return analises.stream()
-            .map(AnaliseReuniao::getNota)
-            .filter(Objects::nonNull)
-            .mapToInt(Integer::intValue)
-            .average()
-            .orElse(0.0);
     }
 
     public AnaliseResponse buscarAnalisePorId(Long id) {
