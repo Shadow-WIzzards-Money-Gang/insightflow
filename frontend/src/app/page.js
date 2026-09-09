@@ -186,7 +186,7 @@ export default function Home() {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-2 sm:gap-3 md:mx-auto md:w-1/2">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3">
         <Card
           value={produtoCritico?.rotulo ?? "—"}
           label={"Produto mais crítico"}
