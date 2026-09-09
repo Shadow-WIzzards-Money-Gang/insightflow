@@ -32,33 +32,46 @@ export default function ReuniaoCard({ id, data, assunto, sentimento, risco, scor
             className={`
                 ${estilo}
                 border-4 rounded-lg w-full h-fit py-3 px-4 cursor-pointer
-                flex flex-row justify-between items-center gap-4
+                flex flex-col gap-2
+                sm:flex-row sm:items-center sm:justify-between sm:gap-4
                 transition-opacity hover:opacity-90
             `}
         >
-            <span className="font-bold whitespace-nowrap">
-                Reunião #{id}
-            </span>
+            {/* No mobile: nº da reunião + score na mesma linha. No desktop: some (contents). */}
+            <div className="flex items-center justify-between gap-2 sm:contents">
+                <span className="font-bold whitespace-nowrap">Reunião #{id}</span>
+                <span className="font-bold whitespace-nowrap sm:hidden">
+                    {score ?? "—"}
+                </span>
+            </div>
 
-            <span className="flex-1 text-secondary-text truncate" title={assunto}>
+            <span
+                className="truncate text-sm text-secondary-text sm:flex-1 sm:text-base"
+                title={assunto}
+            >
                 {assunto}
             </span>
 
-            <span className="text-secondary-text whitespace-nowrap w-24 text-center">
-                {formatarData(data)}
-            </span>
+            {/* No mobile: metadados agrupados e com rótulo. No desktop: colunas alinhadas. */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm sm:contents">
+                <span className="text-secondary-text whitespace-nowrap sm:w-24 sm:text-center">
+                    <span className="opacity-60 sm:hidden">Data: </span>
+                    {formatarData(data)}
+                </span>
 
-            <span className="font-semibold whitespace-nowrap w-20 text-center">
-                {SENTIMENTO_LABEL[sentimento] ?? sentimento ?? "—"}
-            </span>
+                <span className="font-semibold whitespace-nowrap sm:w-20 sm:text-center">
+                    {SENTIMENTO_LABEL[sentimento] ?? sentimento ?? "—"}
+                </span>
 
-            <span className="text-secondary-text whitespace-nowrap w-24 text-center">
-                {RISCO_LABEL[risco] ?? risco ?? "—"}
-            </span>
+                <span className="text-secondary-text whitespace-nowrap sm:w-24 sm:text-center">
+                    <span className="opacity-60 sm:hidden">Risco: </span>
+                    {RISCO_LABEL[risco] ?? risco ?? "—"}
+                </span>
 
-            <span className="font-bold whitespace-nowrap w-10 text-right">
-                {score ?? "—"}
-            </span>
+                <span className="hidden font-bold whitespace-nowrap sm:block sm:w-10 sm:text-right">
+                    {score ?? "—"}
+                </span>
+            </div>
         </div>
     );
 }

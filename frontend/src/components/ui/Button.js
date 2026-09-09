@@ -7,10 +7,13 @@ export default function Button({ label, handleClick, disabled = false }) {
           className={`
             text-primary-bg-card-color
             bg-primary-text
-            text-md
+            text-xs
+            sm:text-md
             font-medium
-            py-2
-            px-4
+            py-1.5
+            px-3
+            sm:py-2
+            sm:px-4
             rounded
             cursor-pointer
             whitespace-nowrap

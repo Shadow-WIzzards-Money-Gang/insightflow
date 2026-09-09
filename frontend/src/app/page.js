@@ -129,14 +129,15 @@ export default function Home() {
   const podeAvancar = page < totalPages - 1 && !loading;
 
   return (
-    <div className="flex flex-col flex-1 gap-8 px-5 py-6">
+    <div className="flex flex-col flex-1 gap-6 px-3 py-4 sm:gap-8 sm:px-5 sm:py-6">
 
-      <div className="flex flex-row items-center justify-between gap-4">
-        <h2 className="text-xl font-bold text-secondary-text">Visão geral</h2>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-lg font-bold text-secondary-text sm:text-xl">Visão geral</h2>
         <SalvarPdfButton metricas={metricas} filtros={filtros} />
       </div>
 
-      <div className="flex flex-row gap-2 justify-center">
+      <div className="flex flex-col gap-2 sm:gap-3">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
         <Card
           value={metricas != null ? String(metricas.totalReunioes ?? 0) : "—"}
           label="Reuniões analisadas"
@@ -173,6 +174,9 @@ export default function Home() {
           bgColor={coresNota.bgColor}
           borderColor={coresNota.borderColor}
         />
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 md:mx-auto md:w-1/2">
         <Card
           value={produtoCritico?.rotulo ?? "—"}
           label={"Produto mais crítico"}
@@ -188,12 +192,13 @@ export default function Home() {
           borderColor={segmentoCritico != null ? CORES.vermelho.borderColor : CORES.neutra.borderColor}
         />
       </div>
+      </div>
 
       <GraficosSection metricas={metricas} loading={loading} />
 
       <section className="flex flex-col gap-3">
-        <div className="flex flex-row items-center justify-between">
-          <h2 className="text-xl font-bold text-secondary-text">
+        <div className="flex flex-row flex-wrap items-center justify-between gap-2">
+          <h2 className="text-lg font-bold text-secondary-text sm:text-xl">
             Análises de reunião
           </h2>
           <div className="flex flex-row items-center gap-2">
@@ -221,7 +226,7 @@ export default function Home() {
 
         {!loading && !error && analises.length > 0 && (
           <div className="flex flex-col gap-2">
-            <div className="w-full h-fit py-3 px-4 flex flex-row justify-between items-center gap-4">
+            <div className="w-full h-fit py-3 px-4 hidden sm:flex flex-row justify-between items-center gap-4">
               <span className="font-bold text-secondary-text whitespace-nowrap">
                 Nº Reunião
             </span>

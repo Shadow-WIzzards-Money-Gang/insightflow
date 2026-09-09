@@ -30,7 +30,7 @@ export default function RootLayout({ children }) {
       <body className="min-h-full flex flex-col bg-body-bg">
         <FiltrosProvider>
           <Header />
-          <main className="flex-1">
+          <main className="flex-1 w-full overflow-x-hidden">
             {children}
             <Toaster position="top-center" />
           </main>
