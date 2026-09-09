@@ -4,7 +4,7 @@ Popula a API do InsightFlow a partir de reunioes.json.
 Melhorias em relacao a versao antiga:
 - aceita 2xx (o endpoint responde 201, nao 200);
 - nunca deixa uma linha derrubar o script inteiro (try/except por item);
-- retry com backoff em 429/5xx e erros de conexao, respeitando Retry-After;
+- ate 2 tentativas em 429/5xx e erros de conexao, sem delay entre itens;
 - timeout nas requisicoes (a chamada da IA e lenta);
 - checkpoint em .populate_state.json -> pode parar (Ctrl+C) e retomar de onde parou;
 - resolve os segmentos uma unica vez e mapeia nomes divergentes.
@@ -32,9 +32,9 @@ ARQUIVO_STATE = Path(__file__).parent / ".populate_state.json"
 
 # (connect timeout, read timeout) - a analise da IA pode levar minutos
 TIMEOUT = (10, 300)
-MAX_RETRIES = 5
-BACKOFF_BASE = 5          # segundos: 5, 10, 20, 40, 80
-PAUSA_ENTRE_ITENS = 1.0   # respeita rate limit do provedor de IA
+MAX_RETRIES = 2
+BACKOFF = 2       # segundos entre tentativas
+BACKOFF_MAX = 10  # teto de espera mesmo com Retry-After alto
 
 # Nomes de segmento no JSON que nao batem exatamente com o cadastro do banco.
 OVERRIDE_SEGMENTOS = {
@@ -94,17 +94,16 @@ def enviar_analise(payload: dict) -> tuple[bool, str]:
         try:
             resp = requests.post(API_ANALISE, json=payload, timeout=TIMEOUT)
         except (requests.ConnectionError, requests.Timeout) as e:
-            espera = BACKOFF_BASE * (2 ** (tentativa - 1))
-            print(f"  conexao falhou ({e.__class__.__name__}); retry em {espera}s "
-                  f"({tentativa}/{MAX_RETRIES})")
-            time.sleep(espera)
+            if tentativa == MAX_RETRIES:
+                return False, e.__class__.__name__
+            time.sleep(BACKOFF)
             continue
 
         if resp.ok:  # 2xx
             return True, f"HTTP {resp.status_code}"
 
         if resp.status_code in (429, 500, 502, 503, 504) and tentativa < MAX_RETRIES:
-            espera = int(resp.headers.get("Retry-After", BACKOFF_BASE * (2 ** (tentativa - 1))))
+            espera = min(int(resp.headers.get("Retry-After", BACKOFF)), BACKOFF_MAX)
             print(f"  HTTP {resp.status_code}; retry em {espera}s ({tentativa}/{MAX_RETRIES})")
             time.sleep(espera)
             continue
@@ -164,8 +163,6 @@ def main() -> None:
 
             if i % 10 == 0:
                 salvar_state({"done": sorted(done), "failed": failed})
-
-            time.sleep(PAUSA_ENTRE_ITENS)
     except KeyboardInterrupt:
         print("\nInterrompido. Salvando progresso...")
     finally:

@@ -20,9 +20,24 @@ Voce vai receber a transcricao bruta de uma reuniao entre um representante da TO
   - Se riscoCancelamento for BAIXO, retorne uma string vazia (""), pois nao ha motivo de risco a registrar.
   - Se riscoCancelamento for MODERADO, ALTO ou MUITO_ALTO, e obrigatorio explicar o motivo com base em evidencias concretas da transcricao (nao genericas).
 
-- produtoTotvsNome: o nome do produto/modulo TOTVS que e o foco central da conversa (APENAS UM, mesmo que outros sejam citados de passagem). Deve ser copiado EXATAMENTE (sem alteracoes, acentos, plural ou variacoes) a partir da lista de produtos cadastrados abaixo:
+- produtoTotvsNome: o produto/linha/modulo TOTVS que e o foco central da conversa (APENAS UM, mesmo que outros sejam citados de passagem). O valor retornado deve ser um dos itens da lista de produtos cadastrados abaixo, copiado com o mesmo texto do item (a diferenca de maiusculas/minusculas nao importa; nao traduza, nao abrevie, nao pluralize):
   %s
-  Se nenhum produto dessa lista for claramente identificavel como o foco da reuniao, retorne o valor 'OUTROS'.
+
+  COMO ESCOLHER (importante): o cliente quase nunca vai pronunciar o nome exato que esta na lista. Ele vai citar siglas, nomes de modulos, apelidos, telas ou termos tecnicos do ecossistema TOTVS. Sua tarefa e INTERPRETAR esses termos e APROXIMAR ao MAXIMO para o item da lista que melhor representa o sistema em discussao. So recorra a "Outros" como ultimo recurso.
+  Passo a passo:
+  1. Identifique na conversa o sistema, a linha (Protheus, RM, Datasul, Logix, Fluig, etc.) e a area funcional (financeiro, fiscal, RH/folha, estoque, faturamento, manufatura, obras, varejo, saude, educacao, agro, etc.).
+  2. Traduza siglas e modulos para a linha correspondente. Exemplos do tipo de raciocinio (nao e uma lista fechada; use seu conhecimento do portfolio TOTVS):
+     - Modulos "SIGA*" do Protheus (SIGAFIN/SIGAFAT/SIGAFIS/SIGACOM/SIGAEST/SIGAGPE...), "Protheus", "P12" -> linha Protheus.
+     - "RM", "TOTVS RM", "Chronus" (ponto), "Labore" (folha), "Nucleus", "Fluig folha" -> linha RM.
+     - "Datasul", "EMS", "HCM Datasul", "FIN/OBF/MLA" -> linha Datasul.
+     - "Logix", "LOG10" -> Logix. "Fluig" (BPM/workflow/portal/ECM) -> Fluig.
+     - "eSocial", "Reinf", "SPED", "EFD", "NF-e/NFC-e", "livros fiscais" -> produto fiscal correspondente na lista.
+     - "folha", "ponto eletronico", "admissao", "ferias", "beneficios" -> produto de RH correspondente na lista.
+  3. Escolha o item MAIS ESPECIFICO da lista que couber:
+     - Se a conversa e sobre uma area funcional de uma linha (ex.: financeiro/fiscal do Protheus, manufatura do Datasul, RH do Protheus), prefira o item especifico dessa combinacao quando ele existir na lista (ex.: "TOTVS Backoffice Linha Protheus", "TOTVS Manufatura Linha Datasul", "TOTVS RH Linha Protheus").
+     - Se so a linha e discutida de forma generica, ou nao da para saber a area, use o nome base da linha ("Protheus", "RM", "Datasul", "Logix").
+     - Na duvida entre dois itens plausiveis, use o segmento do cliente e o contexto (integracoes, telas, nomes de consultores, modulos citados) para desambiguar.
+  4. Retorne "Outros" SOMENTE se, mesmo apos esse esforco, nenhum item da lista representar de forma razoavel o sistema discutido, ou se a reuniao nao tratar de um produto especifico. Nunca use "Outros" so porque o nome exato nao foi falado.
 
 - pontosPositivos: os pontos positivos concretos identificados na conversa (elogios do cliente, funcionalidades bem avaliadas, problemas resolvidos com sucesso, bom atendimento, etc.). Liste como itens de texto curtos SEPARADOS POR VIRGULA. Se nao houver nenhum ponto positivo identificavel, retorne uma string vazia.
 
@@ -32,7 +47,8 @@ Voce vai receber a transcricao bruta de uma reuniao entre um representante da TO
 
 Regras gerais:
 1. Baseie-se exclusivamente no conteudo da transcricao fornecida. Nunca invente informacoes, nomes, produtos ou eventos que nao estejam presentes nela.
-2. Se a transcricao for ambigua ou incompleta em algum ponto, prefira a interpretacao mais conservadora (ex.: sentimento NEUTRO, risco BAIXO) em vez de especular.
-3. Nao inclua explicacoes, comentarios ou texto fora do JSON de saida.
+2. Se a transcricao for ambigua ou incompleta em algum ponto, prefira a interpretacao mais conservadora (ex.: sentimento NEUTRO, risco BAIXO) em vez de especular. Isso NAO se aplica a produtoTotvsNome: nesse campo voce deve fazer o mapeamento aproximado descrito acima e so usar "Outros" como ultimo recurso.
+3. Nunca invente um nome de produto: o valor de produtoTotvsNome tem que ser, sempre, uma copia exata de um item da lista fornecida (ou "Outros").
+4. Nao inclua explicacoes, comentarios ou texto fora do JSON de saida.
 
 Retorne exclusivamente um objeto JSON valido, sem markdown e sem texto adicional, com os campos: "assunto", "sentimentoReuniao", "riscoCancelamento", "motivoCancelamento", "produtoTotvsNome", "pontosPositivos", "pontosNegativos", "nota"
