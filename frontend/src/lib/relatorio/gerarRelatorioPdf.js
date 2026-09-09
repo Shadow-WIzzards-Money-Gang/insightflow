@@ -1,4 +1,5 @@
 import { montarGraficos } from "@/components/layout/GraficosSection";
+import { LABEL_RISCO, LABEL_SENTIMENTO } from "@/components/charts/chartTokens";
 import { descreverFiltros } from "@/lib/relatorio/descreverFiltros";
 
 const MARGEM = 15;
@@ -25,6 +26,12 @@ const SENTIMENTO_LABEL = {
     NEUTRO: "Neutro",
     NEGATIVO: "Negativo",
 };
+
+function formatarData(iso) {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString("pt-BR");
+}
 
 // Mesmas regras de cor do dashboard (page.js)
 function corSentimento(s) {
@@ -136,7 +143,13 @@ function desenharCardGrafico(doc, x, y, w, h, grafico, img) {
     doc.addImage(img.dataUrl, "PNG", x + 5, y + 17, imgW, imgH);
 }
 
-export async function gerarRelatorioPdf({ metricas, filtros, imagens }) {
+export async function gerarRelatorioPdf({
+    metricas,
+    filtros,
+    imagens,
+    graficosIds,
+    analises,
+}) {
     const { jsPDF } = await import("jspdf");
     const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
 
@@ -203,7 +216,11 @@ export async function gerarRelatorioPdf({ metricas, filtros, imagens }) {
     y += 2 * ch + linGap + 10;
 
     // --- Gráficos ---
-    const graficos = montarGraficos(metricas).filter((g) => imagens[g.id]);
+    const graficos = montarGraficos(metricas).filter(
+        (g) =>
+            imagens[g.id] &&
+            (!graficosIds?.length || graficosIds.includes(g.id))
+    );
     const meias = graficos.filter((g) => g.largura !== "inteira");
     const inteiras = graficos.filter((g) => g.largura === "inteira");
 
@@ -233,6 +250,101 @@ export async function gerarRelatorioPdf({ metricas, filtros, imagens }) {
         y = garantirEspaco(y, h);
         desenharCardGrafico(doc, MARGEM, y, LARGURA_CONTEUDO, h, g, imagens[g.id]);
         y += h + 6;
+    }
+
+    // --- Análises de reunião ---
+    if (Array.isArray(analises) && analises.length > 0) {
+        const { default: autoTable } = await import("jspdf-autotable");
+
+        y = garantirEspaco(y, 24);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.setTextColor(...COR.tinta);
+        doc.text(`Análises de reunião (${analises.length})`, MARGEM, y);
+        y += 4;
+
+        autoTable(doc, {
+            startY: y,
+            head: [["Nº", "Assunto", "Data", "Sentimento", "Risco", "Score"]],
+            body: analises.map((a) => [
+                `#${a.id}`,
+                a.assunto || "—",
+                formatarData(a.reuniao?.dataReuniao),
+                LABEL_SENTIMENTO[a.sentimentoReuniao] ?? a.sentimentoReuniao ?? "—",
+                LABEL_RISCO[a.riscoCancelamento] ?? a.riscoCancelamento ?? "—",
+                a.nota ?? "—",
+            ]),
+            margin: { left: MARGEM, right: MARGEM },
+            styles: {
+                font: "helvetica",
+                fontSize: 8,
+                cellPadding: 2,
+                textColor: COR.tinta,
+                lineColor: COR.linha,
+                lineWidth: 0.1,
+            },
+            headStyles: {
+                fillColor: COR.cardEscuro,
+                textColor: COR.branco,
+                fontStyle: "bold",
+            },
+            alternateRowStyles: { fillColor: COR.cardClaro },
+            columnStyles: {
+                0: { cellWidth: 14 },
+                1: { cellWidth: "auto" },
+                2: { cellWidth: 22 },
+                3: { cellWidth: 24 },
+                4: { cellWidth: 22 },
+                5: { cellWidth: 14, halign: "right" },
+            },
+        });
+
+        y = (doc.lastAutoTable?.finalY ?? y) + 10;
+
+        // Resumo do motivo do risco para análises de risco alto / muito alto
+        const criticas = analises.filter(
+            (a) =>
+                (a.riscoCancelamento === "ALTO" ||
+                    a.riscoCancelamento === "MUITO_ALTO") &&
+                a.motivoCancelamento &&
+                a.motivoCancelamento.trim()
+        );
+
+        if (criticas.length > 0) {
+            y = garantirEspaco(y, 16);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(11);
+            doc.setTextColor(...COR.tinta);
+            doc.text("Resumo — risco alto e muito alto", MARGEM, y);
+            y += 6;
+
+            criticas.forEach((a) => {
+                const titulo = `#${a.id} — ${a.assunto || "Sem assunto"} (${
+                    LABEL_RISCO[a.riscoCancelamento] ?? a.riscoCancelamento
+                })`;
+
+                doc.setFontSize(9);
+                const tituloLinhas = doc.splitTextToSize(titulo, LARGURA_CONTEUDO);
+                const corpoLinhas = doc.splitTextToSize(
+                    a.motivoCancelamento.trim(),
+                    LARGURA_CONTEUDO
+                );
+                const alturaBloco =
+                    (tituloLinhas.length + corpoLinhas.length) * 4.4 + 4;
+
+                y = garantirEspaco(y, alturaBloco);
+
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(...COR.tinta);
+                doc.text(tituloLinhas, MARGEM, y);
+                y += tituloLinhas.length * 4.4;
+
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(...COR.suave);
+                doc.text(corpoLinhas, MARGEM, y);
+                y += corpoLinhas.length * 4.4 + 4;
+            });
+        }
     }
 
     // --- Rodapé ---

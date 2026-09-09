@@ -50,6 +50,26 @@ export const getAnaliseReuniaoById = async (id) => {
     return request(`/api/analises/${id}`);
 };
 
+// Percorre todas as páginas e devolve todas as análises que batem com os filtros.
+// Usado na exportação em PDF (a tela em si continua paginada).
+export const getAnalisesReuniaoTodas = async (filtros = {}) => {
+    const TAMANHO = 200;
+    const todas = [];
+    let pagina = 0;
+    let totalPaginas = 1;
+
+    do {
+        const dados = await getAnalisesReuniao(pagina, TAMANHO, filtros);
+        const conteudo = dados.analises?.content ?? [];
+        todas.push(...conteudo);
+        totalPaginas = dados.analises?.totalPages ?? 1;
+        pagina += 1;
+        if (conteudo.length === 0) break;
+    } while (pagina < totalPaginas);
+
+    return todas;
+};
+
 export const getSegmentosClientes = async () => {
     return request(`/api/segmentos`);
 };

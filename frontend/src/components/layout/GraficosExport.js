@@ -14,10 +14,15 @@ const TAMANHO = {
 
 // Renderiza os gráficos do dashboard em canvases grandes, fora da viewport, e
 // devolve as imagens PNG (via Chart.js) para o gerador de PDF.
-export default function GraficosExport({ metricas, onPronto }) {
+export default function GraficosExport({ metricas, ids, onPronto }) {
+    const idsChave = ids ? ids.join(",") : null;
     const graficos = useMemo(
-        () => montarGraficos(metricas).filter((g) => g.data),
-        [metricas]
+        () =>
+            montarGraficos(metricas).filter(
+                (g) => g.data && (!ids || ids.includes(g.id))
+            ),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [metricas, idsChave]
     );
     const refs = useRef([]);
 
