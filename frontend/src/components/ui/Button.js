@@ -1,8 +1,9 @@
 "use client";
 
-export default function Button({ label, handleClick }) {
+export default function Button({ label, handleClick, disabled = false }) {
     return (
-        <button 
+        <button
+          disabled={disabled}
           className={`
             text-primary-bg-card-color
             bg-primary-text
@@ -19,6 +20,9 @@ export default function Button({ label, handleClick }) {
             focus-visible:ring-2
             focus-visible:ring-primary-text
             uppercase
+            disabled:cursor-not-allowed
+            disabled:opacity-50
+            disabled:hover:opacity-50
           `}
           onClick={(e) => handleClick?.(e)}
         >

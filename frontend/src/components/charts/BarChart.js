@@ -1,13 +1,16 @@
 "use client";
 
+import { forwardRef } from "react";
 import { Bar } from "react-chartjs-2";
 
 import "@/components/charts/chartSetup";
 
-export default function BarChart({ data, options, altura = "h-64" }) {
+const BarChart = forwardRef(function BarChart({ data, options, altura = "h-64" }, ref) {
     return (
         <div className={altura}>
-            <Bar data={data} options={options} />
+            <Bar ref={ref} data={data} options={options} />
         </div>
     );
-}
+});
+
+export default BarChart;

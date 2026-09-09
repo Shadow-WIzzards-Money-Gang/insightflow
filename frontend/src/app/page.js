@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import ReuniaoCard from "@/components/layout/ReuniaoCard";
 import AnaliseDetalhesModal from "@/components/layout/AnaliseDetalhesModal";
 import GraficosSection from "@/components/layout/GraficosSection";
+import SalvarPdfButton from "@/components/layout/SalvarPdfButton";
 import Card from "@/components/ui/Card";
 import NextPage from "@/components/ui/nextPage";
 import PrevPage from "@/components/ui/prevPage";
@@ -129,6 +130,11 @@ export default function Home() {
 
   return (
     <div className="flex flex-col flex-1 gap-8 px-5 py-6">
+
+      <div className="flex flex-row items-center justify-between gap-4">
+        <h2 className="text-xl font-bold text-secondary-text">Visão geral</h2>
+        <SalvarPdfButton metricas={metricas} filtros={filtros} />
+      </div>
 
       <div className="flex flex-row gap-2 justify-center">
         <Card

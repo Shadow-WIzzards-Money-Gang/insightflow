@@ -3,13 +3,23 @@
 import {
     Chart as ChartJS,
     BarElement,
+    ArcElement,
+    PieController,
     CategoryScale,
     LinearScale,
     Tooltip,
     Legend,
 } from "chart.js";
 
-ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
+ChartJS.register(
+    BarElement,
+    ArcElement,
+    PieController,
+    CategoryScale,
+    LinearScale,
+    Tooltip,
+    Legend
+);
 
 // Tokens do tema escuro do app
 export const COR_TEXTO = "#FFFFFF";
@@ -62,6 +72,35 @@ export function construirOpcoes({ empilhado = false, legenda = false, tooltipLab
                 grid: { color: COR_GRID },
                 border: { display: false },
                 ticks: { color: COR_TEXTO_SUAVE, font: { size: 11 }, precision: 0 },
+            },
+        },
+    };
+}
+
+export function construirOpcoesPizza({ tooltipLabel } = {}) {
+    return {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: true,
+                position: "bottom",
+                labels: {
+                    color: COR_TEXTO,
+                    boxWidth: 12,
+                    boxHeight: 12,
+                    padding: 14,
+                    font: { size: 11 },
+                },
+            },
+            tooltip: {
+                backgroundColor: COR_TOOLTIP_BG,
+                borderColor: COR_GRID,
+                borderWidth: 1,
+                titleColor: COR_TEXTO,
+                bodyColor: COR_TEXTO_SUAVE,
+                padding: 10,
+                callbacks: tooltipLabel ? { label: tooltipLabel } : {},
             },
         },
     };

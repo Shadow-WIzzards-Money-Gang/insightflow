@@ -2,7 +2,12 @@
 
 import ChartCard from "@/components/charts/ChartCard";
 import BarChart from "@/components/charts/BarChart";
-import { construirOpcoes, COR_SUPERFICIE } from "@/components/charts/chartSetup";
+import PieChart from "@/components/charts/PieChart";
+import {
+    construirOpcoes,
+    construirOpcoesPizza,
+    COR_SUPERFICIE,
+} from "@/components/charts/chartSetup";
 import {
     COR_RISCO,
     COR_SENTIMENTO,
@@ -52,6 +57,132 @@ function dataRiscoEmpilhado(itens) {
     };
 }
 
+// Fonte única de verdade dos gráficos do dashboard: descritores consumidos tanto
+// pela seção na tela quanto pelo exportador de PDF (GraficosExport).
+// Retorna [] quando não há análises para exibir.
+export function montarGraficos(metricas) {
+    if (!metricas) return [];
+
+    const total = metricas.totalReunioes ?? 0;
+    if (total === 0) return [];
+
+    // --- Sentimento das reuniões ---
+    const sentimentoValores = [
+        metricas.totalSentimentoPositivo ?? 0,
+        metricas.totalSentimentoNeutro ?? 0,
+        metricas.totalSentimentoNegativo ?? 0,
+    ];
+    const totalSentimento = sentimentoValores.reduce((s, v) => s + v, 0);
+    const dataSentimento = {
+        labels: [
+            LABEL_SENTIMENTO.POSITIVO,
+            LABEL_SENTIMENTO.NEUTRO,
+            LABEL_SENTIMENTO.NEGATIVO,
+        ],
+        datasets: [
+            {
+                label: "Reuniões",
+                data: sentimentoValores,
+                backgroundColor: [
+                    COR_SENTIMENTO.POSITIVO,
+                    COR_SENTIMENTO.NEUTRO,
+                    COR_SENTIMENTO.NEGATIVO,
+                ],
+                borderColor: COR_SUPERFICIE,
+                borderWidth: 2,
+            },
+        ],
+    };
+
+    // --- Risco de churn ---
+    const riscoValor = {
+        MUITO_ALTO: metricas.totalRiscoMuitoAlto ?? 0,
+        ALTO: metricas.totalRiscoAlto ?? 0,
+        MODERADO: metricas.totalRiscoModerado ?? 0,
+        BAIXO: metricas.totalRiscoBaixo ?? 0,
+    };
+    const emRisco = riscoValor.MUITO_ALTO + riscoValor.ALTO;
+    const dataRisco = {
+        labels: RISCOS_ORDEM.map((chave) => LABEL_RISCO[chave]),
+        datasets: [
+            {
+                label: "Reuniões",
+                data: RISCOS_ORDEM.map((chave) => riscoValor[chave]),
+                backgroundColor: RISCOS_ORDEM.map((chave) => COR_RISCO[chave]),
+                borderColor: COR_SUPERFICIE,
+                borderWidth: 2,
+            },
+        ],
+    };
+
+    const opcoesRiscoEmpilhado = construirOpcoes({
+        empilhado: true,
+        legenda: true,
+        tooltipLabel: (ctx) => ` ${ctx.dataset.label}: ${ctx.parsed.y}`,
+    });
+
+    const produtos = ordenarPorAtencao(metricas.riscoPorProduto ?? []).slice(0, TOP_PRODUTOS);
+    const segmentos = ordenarPorAtencao(metricas.riscoPorSegmento ?? []);
+
+    return [
+        {
+            id: "sentimento",
+            tipo: "pizza",
+            title: "Sentimento das reuniões",
+            subtitle: `${total} análise(s) no período filtrado`,
+            largura: "meia",
+            altura: "h-56",
+            data: dataSentimento,
+            options: construirOpcoesPizza({
+                tooltipLabel: (ctx) =>
+                    ` ${ctx.label}: ${ctx.parsed} reunião(ões) · ${percentual(
+                        ctx.parsed,
+                        totalSentimento
+                    )}%`,
+            }),
+        },
+        {
+            id: "risco",
+            tipo: "pizza",
+            title: "Risco de churn",
+            subtitle: `${emRisco} de ${total} em risco alto ou muito alto (${percentual(
+                emRisco,
+                total
+            )}%)`,
+            largura: "meia",
+            altura: "h-56",
+            data: dataRisco,
+            options: construirOpcoesPizza({
+                tooltipLabel: (ctx) =>
+                    ` ${ctx.label}: ${ctx.parsed} reunião(ões) · ${percentual(
+                        ctx.parsed,
+                        total
+                    )}%`,
+            }),
+        },
+        {
+            id: "produto",
+            title: "Risco de churn por produto",
+            subtitle: "Composição do risco nos produtos mais frequentes",
+            largura: "inteira",
+            altura: "h-72",
+            data: produtos.length > 0 ? dataRiscoEmpilhado(produtos) : null,
+            options: opcoesRiscoEmpilhado,
+            vazio: "Nenhum produto associado às análises.",
+        },
+        {
+            id: "segmento",
+            title: "Risco de churn por segmento",
+            subtitle: "Composição do risco em cada segmento de cliente",
+            largura: "inteira",
+            altura: "h-72",
+            data: segmentos.length > 0 ? dataRiscoEmpilhado(segmentos) : null,
+            options: opcoesRiscoEmpilhado,
+            vazio: "Nenhum segmento associado às análises.",
+        },
+    ];
+}
+
 function Skeleton() {
     return (
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
@@ -83,129 +214,26 @@ export default function GraficosSection({ metricas, loading }) {
         );
     }
 
-    // --- Sentimento das reuniões ---
-    const sentimentoValores = [
-        metricas.totalSentimentoPositivo ?? 0,
-        metricas.totalSentimentoNeutro ?? 0,
-        metricas.totalSentimentoNegativo ?? 0,
-    ];
-    const totalSentimento = sentimentoValores.reduce((s, v) => s + v, 0);
-    const dataSentimento = {
-        labels: [
-            LABEL_SENTIMENTO.POSITIVO,
-            LABEL_SENTIMENTO.NEUTRO,
-            LABEL_SENTIMENTO.NEGATIVO,
-        ],
-        datasets: [
-            {
-                label: "Reuniões",
-                data: sentimentoValores,
-                backgroundColor: [
-                    COR_SENTIMENTO.POSITIVO,
-                    COR_SENTIMENTO.NEUTRO,
-                    COR_SENTIMENTO.NEGATIVO,
-                ],
-                borderRadius: 4,
-                maxBarThickness: 72,
-            },
-        ],
-    };
-    const opcoesSentimento = construirOpcoes({
-        tooltipLabel: (ctx) =>
-            ` ${ctx.parsed.y} reunião(ões) · ${percentual(ctx.parsed.y, totalSentimento)}%`,
-    });
-
-    // --- Risco de churn ---
-    const riscoValor = {
-        MUITO_ALTO: metricas.totalRiscoMuitoAlto ?? 0,
-        ALTO: metricas.totalRiscoAlto ?? 0,
-        MODERADO: metricas.totalRiscoModerado ?? 0,
-        BAIXO: metricas.totalRiscoBaixo ?? 0,
-    };
-    const emRisco = riscoValor.MUITO_ALTO + riscoValor.ALTO;
-    const dataRisco = {
-        labels: RISCOS_ORDEM.map((chave) => LABEL_RISCO[chave]),
-        datasets: [
-            {
-                label: "Reuniões",
-                data: RISCOS_ORDEM.map((chave) => riscoValor[chave]),
-                backgroundColor: RISCOS_ORDEM.map((chave) => COR_RISCO[chave]),
-                borderRadius: 4,
-                maxBarThickness: 72,
-            },
-        ],
-    };
-    const opcoesRisco = construirOpcoes({
-        tooltipLabel: (ctx) =>
-            ` ${ctx.parsed.y} reunião(ões) · ${percentual(ctx.parsed.y, total)}%`,
-    });
-
-    const opcoesRiscoEmpilhado = construirOpcoes({
-        empilhado: true,
-        legenda: true,
-        tooltipLabel: (ctx) => ` ${ctx.dataset.label}: ${ctx.parsed.y}`,
-    });
-
-    // --- Risco de churn por produto (mais frequentes primeiro) ---
-    const produtos = ordenarPorAtencao(metricas.riscoPorProduto ?? []).slice(0, TOP_PRODUTOS);
-
-    // --- Risco de churn por segmento ---
-    const segmentos = ordenarPorAtencao(metricas.riscoPorSegmento ?? []);
+    const graficos = montarGraficos(metricas);
 
     return (
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-            <ChartCard
-                title="Sentimento das reuniões"
-                subtitle={`${total} análise(s) no período filtrado`}
-            >
-                <BarChart data={dataSentimento} options={opcoesSentimento} altura="h-56" />
-            </ChartCard>
-
-            <ChartCard
-                title="Risco de churn"
-                subtitle={`${emRisco} de ${total} em risco alto ou muito alto (${percentual(
-                    emRisco,
-                    total
-                )}%)`}
-            >
-                <BarChart data={dataRisco} options={opcoesRisco} altura="h-56" />
-            </ChartCard>
-
-            <ChartCard
-                title="Risco de churn por produto"
-                subtitle="Composição do risco nos produtos mais frequentes"
-                className="lg:col-span-2"
-            >
-                {produtos.length === 0 ? (
-                    <p className="text-xs text-secondary-text opacity-60">
-                        Nenhum produto associado às análises.
-                    </p>
-                ) : (
-                    <BarChart
-                        data={dataRiscoEmpilhado(produtos)}
-                        options={opcoesRiscoEmpilhado}
-                        altura="h-72"
-                    />
-                )}
-            </ChartCard>
-
-            <ChartCard
-                title="Risco de churn por segmento"
-                subtitle="Composição do risco em cada segmento de cliente"
-                className="lg:col-span-2"
-            >
-                {segmentos.length === 0 ? (
-                    <p className="text-xs text-secondary-text opacity-60">
-                        Nenhum segmento associado às análises.
-                    </p>
-                ) : (
-                    <BarChart
-                        data={dataRiscoEmpilhado(segmentos)}
-                        options={opcoesRiscoEmpilhado}
-                        altura="h-72"
-                    />
-                )}
-            </ChartCard>
+            {graficos.map((g) => (
+                <ChartCard
+                    key={g.id}
+                    title={g.title}
+                    subtitle={g.subtitle}
+                    className={g.largura === "inteira" ? "lg:col-span-2" : ""}
+                >
+                    {g.data == null ? (
+                        <p className="text-xs text-secondary-text opacity-60">{g.vazio}</p>
+                    ) : g.tipo === "pizza" ? (
+                        <PieChart data={g.data} options={g.options} altura={g.altura} />
+                    ) : (
+                        <BarChart data={g.data} options={g.options} altura={g.altura} />
+                    )}
+                </ChartCard>
+            ))}
         </div>
     );
 }
