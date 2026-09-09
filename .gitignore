@@ -16,6 +16,8 @@
 *_LOCAL_*.txt
 *_REMOTE_*.txt
 
+./**/*.populate_state.json
+
 ### Java ###
 # Compiled class file
 *.class
