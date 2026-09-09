@@ -136,7 +136,17 @@ export default function Home() {
         <SalvarPdfButton metricas={metricas} filtros={filtros} />
       </div>
 
-      <div className="flex flex-col gap-2 sm:gap-3">
+      <div className="relative flex flex-col gap-6 sm:gap-8" aria-busy={loading}>
+
+      {loading && metricas != null && (
+        <div className="pointer-events-none absolute inset-0 z-20 flex justify-center bg-body-bg/60 backdrop-blur-[1px]">
+          <div className="sticky top-20 h-fit self-start rounded-xl border-2 border-secondary-bg-color bg-primary-bg-card-color/95 px-8 shadow-lg shadow-black/20">
+            <Loading label="Atualizando resultados..." />
+          </div>
+        </div>
+      )}
+
+      <div className={`flex flex-col gap-2 sm:gap-3 transition-opacity ${loading && metricas != null ? "opacity-40" : ""}`}>
       <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
         <Card
           value={metricas != null ? String(metricas.totalReunioes ?? 0) : "—"}
@@ -194,9 +204,11 @@ export default function Home() {
       </div>
       </div>
 
-      <GraficosSection metricas={metricas} loading={loading} />
+      <div className={`transition-opacity ${loading && metricas != null ? "opacity-40" : ""}`}>
+        <GraficosSection metricas={metricas} loading={loading} />
+      </div>
 
-      <section className="flex flex-col gap-3">
+      <section className={`flex flex-col gap-3 transition-opacity ${loading && analises.length > 0 ? "opacity-40" : ""}`}>
         <div className="flex flex-row flex-wrap items-center justify-between gap-2">
           <h2 className="text-lg font-bold text-secondary-text sm:text-xl">
             Análises de reunião
@@ -210,7 +222,9 @@ export default function Home() {
           </div>
         </div>
 
-        {loading && <Loading label="Carregando análises..." />}
+        {loading && analises.length === 0 && !error && (
+          <Loading label="Carregando análises..." />
+        )}
 
         {!loading && error && (
           <ErrorMessage message={error} onRetry={() => carregarAnalises(page)} />
@@ -224,7 +238,7 @@ export default function Home() {
           </p>
         )}
 
-        {!loading && !error && analises.length > 0 && (
+        {!error && analises.length > 0 && (
           <div className="flex flex-col gap-2">
             <div className="w-full h-fit py-3 px-4 hidden sm:flex flex-row justify-between items-center gap-4">
               <span className="font-bold text-secondary-text whitespace-nowrap">
@@ -266,6 +280,8 @@ export default function Home() {
           </div>
         )}
       </section>
+
+      </div>
 
       {analiseSelecionada != null && (
         <AnaliseDetalhesModal
