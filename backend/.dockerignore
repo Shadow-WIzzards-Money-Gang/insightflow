@@ -1,0 +1,10 @@
+target/
+.mvn/
+.env
+.env.example
+data/
+docker/
+*.md
+.git
+.gitignore
+.gitattributes
