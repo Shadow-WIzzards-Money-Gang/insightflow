@@ -3,6 +3,8 @@ package br.com.bytestorm.insightflow.application.service;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -30,6 +32,8 @@ import br.com.bytestorm.insightflow.infra.repository.specification.AnaliseReunia
 
 @Service
 public class AnaliseService {
+
+    private static final Logger log = LoggerFactory.getLogger(AnaliseService.class);
 
     private final AnaliseReuniaoRepository analiseReuniaoRepository;
     private final AiClient aiClient;
@@ -75,7 +79,11 @@ public class AnaliseService {
 
         AnaliseReuniao analiseReuniao = converterParaEntidade(resultadoIA, reuniao);
 
-        return AnaliseResponse.fromEntity(analiseReuniaoRepository.save(analiseReuniao));
+        log.info("Consultando banco de dados - salvando análise da reunião id={}", reuniao.getId());
+        AnaliseReuniao analiseSalva = analiseReuniaoRepository.save(analiseReuniao);
+        log.info("Consulta finalizada - análise id={} salva", analiseSalva.getId());
+
+        return AnaliseResponse.fromEntity(analiseSalva);
     }
 
     public AnaliseReuniao converterParaEntidade(AnaliseIAResult analiseIAResult, Reuniao reuniao) {
@@ -114,24 +122,36 @@ public class AnaliseService {
     public AnaliseComMetricasResponse buscarAnalises(Pageable pageable, AnaliseFiltroRequest filtro) {
         Specification<AnaliseReuniao> spec = AnaliseReuniaoSpecification.comFiltros(filtro);
 
+        log.info("Consultando banco de dados - buscando análises paginadas (page={}, size={})", pageable.getPageNumber(), pageable.getPageSize());
         Page<AnaliseResponse> analises = this.analiseReuniaoRepository
             .findAll(spec, pageable)
             .map((a) -> Helpers.resumirAnalise(a));
+        log.info("Consulta finalizada - {} análises encontradas", analises.getTotalElements());
 
+        log.info("Consultando banco de dados - buscando análises para cálculo de métricas");
         MetricasResponse metricas = metricaService.calcularMetricas(this.analiseReuniaoRepository.findAll(spec));
+        log.info("Consulta finalizada - métricas calculadas");
 
         return new AnaliseComMetricasResponse(metricas, analises);
     }
 
     public AnaliseResponse buscarAnalisePorId(Long id) {
-        return this.analiseReuniaoRepository.findById(id)
+        log.info("Consultando banco de dados - buscando análise id={}", id);
+        AnaliseResponse analise = this.analiseReuniaoRepository.findById(id)
             .map(a -> AnaliseResponse.fromEntity(a))
             .orElseThrow(() -> new ReuniaoNaoEncontradaException());
+        log.info("Consulta finalizada - análise id={} encontrada", id);
+
+        return analise;
     }
 
     public AnaliseResponse buscarAnalisePorIdReuniao(Long id) {
-        return AnaliseResponse.fromEntity(this.analiseReuniaoRepository.findByReuniaoId(id).orElseThrow(
+        log.info("Consultando banco de dados - buscando análise pela reunião id={}", id);
+        AnaliseResponse analise = AnaliseResponse.fromEntity(this.analiseReuniaoRepository.findByReuniaoId(id).orElseThrow(
             () -> new ReuniaoNaoEncontradaException()
         ));
+        log.info("Consulta finalizada - análise da reunião id={} encontrada", id);
+
+        return analise;
     }
 }

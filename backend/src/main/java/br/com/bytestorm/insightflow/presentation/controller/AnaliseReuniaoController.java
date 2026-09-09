@@ -1,5 +1,7 @@
 package br.com.bytestorm.insightflow.presentation.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,8 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/analises")
 public class AnaliseReuniaoController {
 
+    private static final Logger log = LoggerFactory.getLogger(AnaliseReuniaoController.class);
+
     private final AnaliseService analiseService;
 
     public AnaliseReuniaoController(AnaliseService analiseService) {
@@ -31,7 +35,13 @@ public class AnaliseReuniaoController {
 
     @PostMapping
     public ResponseEntity<AnaliseResponse> analisarReuniao(@Valid @RequestBody AnaliseRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(this.analiseService.analisarReuniao(request));
+        log.info("Requisição recebida: POST /api/analises - segmentoClienteId={}", request.segmentoClienteId());
+
+        AnaliseResponse analise = this.analiseService.analisarReuniao(request);
+        ResponseEntity<AnaliseResponse> response = ResponseEntity.status(HttpStatus.CREATED).body(analise);
+
+        log.info("Resposta enviada: POST /api/analises - status={}, analiseId={}", response.getStatusCode(), analise.id());
+        return response;
     }
 
     @GetMapping
@@ -39,12 +49,24 @@ public class AnaliseReuniaoController {
         @ModelAttribute AnaliseFiltroRequest filtro,
         Pageable pageable
     ) {
-        return ResponseEntity.status(HttpStatus.OK).body(this.analiseService.buscarAnalises(pageable, filtro));
+        log.info("Requisição recebida: GET /api/analises - filtro={}, page={}, size={}", filtro, pageable.getPageNumber(), pageable.getPageSize());
+
+        AnaliseComMetricasResponse resultado = this.analiseService.buscarAnalises(pageable, filtro);
+        ResponseEntity<AnaliseComMetricasResponse> response = ResponseEntity.status(HttpStatus.OK).body(resultado);
+
+        log.info("Resposta enviada: GET /api/analises - status={}, totalElementos={}", response.getStatusCode(), resultado.analises().getTotalElements());
+        return response;
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<AnaliseResponse> buscarAnalisePorId(@PathVariable Long id) {
-        return ResponseEntity.status(HttpStatus.OK).body(this.analiseService.buscarAnalisePorId(id));
+        log.info("Requisição recebida: GET /api/analises/{}", id);
+
+        AnaliseResponse analise = this.analiseService.buscarAnalisePorId(id);
+        ResponseEntity<AnaliseResponse> response = ResponseEntity.status(HttpStatus.OK).body(analise);
+
+        log.info("Resposta enviada: GET /api/analises/{} - status={}", id, response.getStatusCode());
+        return response;
     }
 
 }
