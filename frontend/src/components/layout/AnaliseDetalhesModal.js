@@ -6,6 +6,7 @@ import Modal from "@/components/ui/Modal";
 import Loading from "@/components/ui/Loading";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import { getAnaliseReuniaoById } from "@/services/api";
+import { lerDetalheCache, gravarDetalheCache } from "@/lib/cache/analisesCache";
 
 const SENTIMENTO_LABEL = {
     POSITIVO: "Positivo",
@@ -64,8 +65,9 @@ function BlocoTexto({ label, texto }) {
 }
 
 export default function AnaliseDetalhesModal({ id, onClose }) {
-    const [analise, setAnalise] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const cacheInicial = lerDetalheCache(id);
+    const [analise, setAnalise] = useState(cacheInicial);
+    const [loading, setLoading] = useState(cacheInicial == null);
     const [error, setError] = useState(null);
     const [tentativa, setTentativa] = useState(0);
 
@@ -78,18 +80,24 @@ export default function AnaliseDetalhesModal({ id, onClose }) {
     useEffect(() => {
         let ativo = true;
 
+        // Cache em tela: revalida em segundo plano, sem spinner.
+        const temCache = lerDetalheCache(id) != null;
+        if (temCache) {
+            setAnalise(lerDetalheCache(id));
+            setLoading(false);
+        }
+
         getAnaliseReuniaoById(id)
             .then((dados) => {
-                if (ativo) {
-                    setAnalise(dados);
-                    setError(null);
-                }
+                if (!ativo) return;
+                setAnalise(dados);
+                setError(null);
+                gravarDetalheCache(id, dados);
             })
             .catch((e) => {
-                if (ativo) {
-                    setAnalise(null);
-                    setError(e.message ?? "Erro ao carregar os detalhes da análise.");
-                }
+                if (!ativo || temCache) return;
+                setAnalise(null);
+                setError(e.message ?? "Erro ao carregar os detalhes da análise.");
             })
             .finally(() => {
                 if (ativo) setLoading(false);

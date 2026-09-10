@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import ReuniaoCard from "@/components/layout/ReuniaoCard";
 import AnaliseDetalhesModal from "@/components/layout/AnaliseDetalhesModal";
@@ -12,6 +12,11 @@ import PrevPage from "@/components/ui/prevPage";
 import Loading from "@/components/ui/Loading";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import { getAnalisesReuniao } from "@/services/api";
+import {
+  lerListaCache,
+  gravarListaCache,
+  invalidarCacheAnalises,
+} from "@/lib/cache/analisesCache";
 import { useFiltros } from "@/context/FiltrosProvider";
 
 const PAGE_SIZE = 10;
@@ -67,8 +72,12 @@ export default function Home() {
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [revalidando, setRevalidando] = useState(false);
   const [error, setError] = useState(null);
   const [analiseSelecionada, setAnaliseSelecionada] = useState(null);
+
+  // Descarta respostas de requisições antigas (troca rápida de filtro/página)
+  const requisicaoRef = useRef(0);
 
   // Volta para a primeira página sempre que os filtros mudam
   const [filtrosAnteriores, setFiltrosAnteriores] = useState(filtros);
@@ -78,21 +87,53 @@ export default function Home() {
   }
 
   const carregarAnalises = useCallback(async (paginaAtual, filtrosAtuais) => {
-    setLoading(true);
-    setError(null);
+    const idReq = ++requisicaoRef.current;
+    const ehAtual = () => idReq === requisicaoRef.current;
+
+    // stale-while-revalidate: se já vimos essa página/filtro, mostra na hora
+    const cache = lerListaCache(paginaAtual, filtrosAtuais);
+    if (cache) {
+      setAnalises(cache.analises ?? []);
+      setTotalPages(cache.totalPages ?? 0);
+      setMetricas(cache.metricas ?? null);
+      setError(null);
+      setLoading(false);
+      setRevalidando(true);
+    } else {
+      setLoading(true);
+      setError(null);
+    }
 
     try {
       const dados = await getAnalisesReuniao(paginaAtual, PAGE_SIZE, filtrosAtuais);
-      setAnalises(dados.analises?.content ?? []);
-      setTotalPages(dados.analises?.totalPages ?? 0);
-      setMetricas(dados.metricas ?? null);
+      if (!ehAtual()) return;
+
+      const analisesNovas = dados.analises?.content ?? [];
+      const totalPagesNovo = dados.analises?.totalPages ?? 0;
+      const metricasNovas = dados.metricas ?? null;
+
+      setAnalises(analisesNovas);
+      setTotalPages(totalPagesNovo);
+      setMetricas(metricasNovas);
+      gravarListaCache(paginaAtual, filtrosAtuais, {
+        analises: analisesNovas,
+        totalPages: totalPagesNovo,
+        metricas: metricasNovas,
+      });
     } catch (e) {
-      setError(e.message ?? "Erro inesperado ao carregar as análises.");
-      setAnalises([]);
-      setTotalPages(0);
-      setMetricas(null);
+      if (!ehAtual()) return;
+      // Com cache em tela, ignora erro de revalidação e mantém o que já aparece.
+      if (!cache) {
+        setError(e.message ?? "Erro inesperado ao carregar as análises.");
+        setAnalises([]);
+        setTotalPages(0);
+        setMetricas(null);
+      }
     } finally {
-      setLoading(false);
+      if (ehAtual()) {
+        setLoading(false);
+        setRevalidando(false);
+      }
     }
   }, []);
 
@@ -120,7 +161,11 @@ export default function Home() {
   }, [page, filtros, carregarAnalises]);
 
   useEffect(() => {
-    const recarregar = () => carregarAnalises(page, filtros);
+    const recarregar = () => {
+      // Uma nova análise muda contagens e métricas de qualquer recorte.
+      invalidarCacheAnalises();
+      carregarAnalises(page, filtros);
+    };
     window.addEventListener("analise:criada", recarregar);
     return () => window.removeEventListener("analise:criada", recarregar);
   }, [page, filtros, carregarAnalises]);
@@ -210,8 +255,15 @@ export default function Home() {
 
       <section className={`flex flex-col gap-3 transition-opacity ${loading && analises.length > 0 ? "opacity-40" : ""}`}>
         <div className="flex flex-row flex-wrap items-center justify-between gap-2">
-          <h2 className="text-lg font-bold text-secondary-text sm:text-xl">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-secondary-text sm:text-xl">
             Análises de reunião
+            {revalidando && (
+              <span
+                className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-secondary-bg-color border-t-primary-text"
+                role="status"
+                aria-label="Atualizando"
+              />
+            )}
           </h2>
           <div className="flex flex-row items-center gap-2">
             <PrevPage onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={!podeVoltar} />
@@ -227,7 +279,7 @@ export default function Home() {
         )}
 
         {!loading && error && (
-          <ErrorMessage message={error} onRetry={() => carregarAnalises(page)} />
+          <ErrorMessage message={error} onRetry={() => carregarAnalises(page, filtros)} />
         )}
 
         {!loading && !error && analises.length === 0 && (
