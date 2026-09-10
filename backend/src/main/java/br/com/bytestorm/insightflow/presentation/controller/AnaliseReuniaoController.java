@@ -1,9 +1,15 @@
 package br.com.bytestorm.insightflow.presentation.controller;
 
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -55,6 +61,26 @@ public class AnaliseReuniaoController {
         ResponseEntity<AnaliseComMetricasResponse> response = ResponseEntity.status(HttpStatus.OK).body(resultado);
 
         log.info("Resposta enviada: GET /api/analises - status={}, totalElementos={}", response.getStatusCode(), resultado.analises().getTotalElements());
+        return response;
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportarAnalises(@ModelAttribute AnaliseFiltroRequest filtro) {
+        log.info("Requisição recebida: GET /api/analises/export - filtro={}", filtro);
+
+        byte[] corpo = this.analiseService.exportarAnalisesCsv(filtro).getBytes(StandardCharsets.UTF_8);
+
+        String nomeArquivo = "analises_"
+            + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HHmmss"))
+            + ".csv";
+
+        ResponseEntity<byte[]> response = ResponseEntity.ok()
+            .contentType(new MediaType("text", "csv", StandardCharsets.UTF_8))
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nomeArquivo + "\"")
+            .contentLength(corpo.length)
+            .body(corpo);
+
+        log.info("Resposta enviada: GET /api/analises/export - status={}, bytes={}", response.getStatusCode(), corpo.length);
         return response;
     }
 

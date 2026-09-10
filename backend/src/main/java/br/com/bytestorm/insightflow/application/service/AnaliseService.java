@@ -1,5 +1,7 @@
 package br.com.bytestorm.insightflow.application.service;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -7,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +23,7 @@ import br.com.bytestorm.insightflow.application.dto.response.MetricasResponse;
 import br.com.bytestorm.insightflow.domain.entity.AnaliseReuniao;
 import br.com.bytestorm.insightflow.domain.entity.Reuniao;
 import br.com.bytestorm.insightflow.domain.entity.ProdutoTotvs;
+import br.com.bytestorm.insightflow.domain.entity.SegmentoCliente;
 import br.com.bytestorm.insightflow.domain.enums.RiscoCancelamento;
 import br.com.bytestorm.insightflow.domain.enums.SentimentoReuniao;
 import br.com.bytestorm.insightflow.domain.exceptions.ia.RespostaIAInvalidaException;
@@ -41,13 +45,15 @@ public class AnaliseService {
     private final ProdutoTotvsService produtoTotvsService;
     private final MetricaService metricaService;
     private final TranscricaoCleaner transcricaoCleaner;
+    private final CsvService csvService;
 
     public AnaliseService(
         AiClient aiClient, ReuniaoService reuniaoService,
         ProdutoTotvsService produtoTotvsService,
         AnaliseReuniaoRepository analiseReuniaoRepository,
         MetricaService metricaService,
-        TranscricaoCleaner transcricaoCleaner
+        TranscricaoCleaner transcricaoCleaner,
+        CsvService csvService
     ) {
         this.aiClient = aiClient;
         this.reuniaoService = reuniaoService;
@@ -55,7 +61,15 @@ public class AnaliseService {
         this.analiseReuniaoRepository = analiseReuniaoRepository;
         this.metricaService = metricaService;
         this.transcricaoCleaner = transcricaoCleaner;
+        this.csvService = csvService;
     }
+
+    private static final List<String> CABECALHO_CSV = List.of(
+        "id", "assunto", "pontos_positivos", "pontos_negativos", "nota",
+        "sentimento_reuniao", "risco_cancelamento", "motivo_cancelamento",
+        "produto_totvs", "segmento_cliente", "data_reuniao", "duracao",
+        "hash_transcricao", "transcricao_bruta"
+    );
 
     @Transactional
     public AnaliseResponse analisarReuniao(AnaliseRequest request) {
@@ -133,6 +147,21 @@ public class AnaliseService {
         log.info("Consulta finalizada - métricas calculadas");
 
         return new AnaliseComMetricasResponse(metricas, analises);
+    }
+
+    @Transactional(readOnly = true)
+    public String exportarAnalisesCsv(AnaliseFiltroRequest filtro) {
+        Specification<AnaliseReuniao> spec = AnaliseReuniaoSpecification.comFiltros(filtro);
+
+        log.info("Consultando banco de dados - exportando análises em CSV (filtro={})", filtro);
+        List<AnaliseReuniao> analises = this.analiseReuniaoRepository.findAll(spec, Sort.by("id"));
+        log.info("Consulta finalizada - {} análise(s) para exportação", analises.size());
+
+        List<List<String>> linhas = analises.stream()
+            .map(csvService::montarLinhaCsv)
+            .toList();
+
+        return csvService.gerar(CABECALHO_CSV, linhas);
     }
 
     public AnaliseResponse buscarAnalisePorId(Long id) {
