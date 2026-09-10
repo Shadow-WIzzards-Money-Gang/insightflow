@@ -7,7 +7,8 @@ suporte.
 Cada transcrição é enviada a um modelo de IA que extrai assunto, sentimento do cliente,
 risco de cancelamento (churn), motivo do risco, produto TOTVS em discussão, pontos
 positivos/negativos e uma nota de 0 a 10. Os resultados alimentam um **dashboard** com
-indicadores, gráficos e filtros, e podem ser exportados como **relatório em PDF**.
+indicadores, gráficos e filtros, e podem ser exportados em **PDF** (relatório visual) ou
+**CSV** (planilha completa).
 
 ---
 
@@ -17,7 +18,7 @@ indicadores, gráficos e filtros, e podem ser exportados como **relatório em PD
 - Dar visibilidade rápida sobre **quais clientes, produtos e segmentos estão em risco**.
 - Padronizar a análise (mesmos critérios de sentimento, risco e nota para todas as reuniões).
 - Permitir recortes por produto / segmento / risco / sentimento e levar essa visão para
-  fora da ferramenta via PDF.
+  fora da ferramenta (PDF para apresentar, CSV para cruzar com outros dados).
 
 ---
 
@@ -34,7 +35,10 @@ Monorepo com três partes:
 
 O backend segue arquitetura em camadas: `presentation` (controllers) → `application`
 (services / DTOs) → `domain` (entidades e enums) → repositórios (Spring Data JPA +
-Specifications para os filtros).
+Specifications para os filtros). A listagem e as métricas do dashboard usam **projeções
+DTO e agregação no banco** (Criteria API): a página vem numa única query, as métricas
+(`COUNT` / `AVG` / `GROUP BY`) são calculadas no Oracle — sem N+1 e sem carregar as
+transcrições na memória.
 
 ---
 
@@ -47,16 +51,19 @@ Specifications para os filtros).
   (`https://api.groq.com/openai/v1`), modelo `openai/gpt-oss-120b`
 - **Oracle Database** (driver `ojdbc11`; imagem `gvenzl/oracle-free` em dev)
 - **Flyway** para versionamento do schema (`V1__create_tables.sql`, `V2__insert_into.sql`)
+- **Apache Commons CSV** (geração do CSV de exportação)
 - Lombok
 - `springboot4-dotenv` (carrega variáveis de um arquivo `.env`)
 - Maven (wrapper `mvnw` incluído)
 
 ### Frontend
 - **Next.js 16** (App Router, Turbopack) + **React 19**
-- **Tailwind CSS v4**
+- **Tailwind CSS v4** — layout responsivo (desktop e mobile)
 - **Chart.js 4** + `react-chartjs-2` (gráficos de pizza e de barra empilhada)
 - **jsPDF** + `jspdf-autotable` (geração do relatório em PDF no cliente)
 - `react-hot-toast` (notificações)
+- Cache próprio (memória + `sessionStorage`) com _stale-while-revalidate_ para a lista e
+  as análises já abertas
 
 ### Carga de dados
 - **Python 3** + `requests`
@@ -76,13 +83,20 @@ Specifications para os filtros).
   - Risco de churn por produto (barra empilhada)
   - Risco de churn por segmento (barra empilhada)
 - **Filtros** por produto, segmento, risco e sentimento — refletem simultaneamente nos
-  indicadores, gráficos e na lista.
+  indicadores, gráficos e na lista. Enquanto a resposta não chega, a tela mostra um
+  _loading_ sem descartar os dados anteriores.
 - **Lista paginada de análises** com modal de detalhes (transcrição, pontos
   positivos/negativos, motivo do risco, etc.).
-- **Exportar PDF:** um modal de configuração permite escolher **quais gráficos** entram no
-  relatório e se a **lista de análises** deve ser incluída (tabela completa das análises
-  filtradas + resumo do motivo para as de risco alto/muito alto). O PDF respeita os
-  filtros aplicados.
+- **Exportar** (botão único que abre um modal para escolher o formato — os dois respeitam
+  os filtros aplicados):
+  - **PDF:** relatório visual; um passo de configuração permite escolher **quais gráficos**
+    entram e se a **lista de análises** deve ser incluída (tabela completa das análises
+    filtradas + resumo do motivo para as de risco alto/muito alto).
+  - **CSV:** planilha (`;` + UTF-8 com BOM, pronta para o Excel pt-BR) com **todas** as
+    análises filtradas e todas as colunas — id, assunto, pontos +/-, nota, sentimento,
+    risco, motivo, produto, segmento, data, duração, hash e transcrição.
+- **Cache no cliente:** voltar a uma página/filtro já visto (ou reabrir uma análise) é
+  instantâneo — o dado em cache aparece na hora e é revalidado em segundo plano.
 - **Layout responsivo** (desktop e mobile).
 
 ---
@@ -95,6 +109,7 @@ Base: `http://localhost:8080`
 |--------|------|-----------|
 | `POST` | `/api/analises` | Cria uma análise a partir de uma transcrição (chama a IA) |
 | `GET`  | `/api/analises` | Lista paginada de análises + métricas agregadas. Query params: `page`, `size`, `produtos`, `segmentos`, `riscos`, `sentimentos` |
+| `GET`  | `/api/analises/export` | Baixa um **CSV** com todas as análises que batem com os filtros (mesmos query params da listagem, sem `page`/`size`) |
 | `GET`  | `/api/analises/{id}` | Detalhe de uma análise |
 | `GET`  | `/api/reunioes`, `/api/reunioes/{id}` | Reuniões |
 | `GET`  | `/api/produtos` | Produtos TOTVS (aceita `?categoria=`) |
@@ -207,8 +222,8 @@ insightflow/
 │   ├── src/main/java/br/com/bytestorm/insightflow/
 │   │   ├── presentation/controller/   # endpoints REST
 │   │   ├── application/                # services, DTOs
-│   │   ├── domain/                     # entidades, enums
-│   │   └── ...
+│   │   ├── domain/                     # entidades, enums, exceções
+│   │   └── infra/                      # repositórios, IA, config
 │   ├── src/main/resources/
 │   │   ├── application.properties
 │   │   ├── db/migration/               # Flyway
@@ -221,6 +236,7 @@ insightflow/
 │       ├── components/                 # charts, layout, ui
 │       ├── context/                    # FiltrosProvider
 │       ├── lib/relatorio/              # geração do PDF
+│       ├── lib/cache/                  # cache stale-while-revalidate das análises
 │       └── services/api.js
 └── data/
     ├── populate_api.py
