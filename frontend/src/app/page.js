@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import ReuniaoCard from "@/components/layout/ReuniaoCard";
 import AnaliseDetalhesModal from "@/components/layout/AnaliseDetalhesModal";
 import GraficosSection from "@/components/layout/GraficosSection";
-import SalvarPdfButton from "@/components/layout/SalvarPdfButton";
+import ExportarButton from "@/components/layout/ExportarButton";
 import Card from "@/components/ui/Card";
 import NextPage from "@/components/ui/nextPage";
 import PrevPage from "@/components/ui/prevPage";
@@ -178,7 +178,7 @@ export default function Home() {
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-lg font-bold text-secondary-text sm:text-xl">Visão geral</h2>
-        <SalvarPdfButton metricas={metricas} filtros={filtros} />
+        <ExportarButton metricas={metricas} filtros={filtros} />
       </div>
 
       <div className="relative flex flex-col gap-6 sm:gap-8" aria-busy={loading}>

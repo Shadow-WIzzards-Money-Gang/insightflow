@@ -33,17 +33,59 @@ async function request(path, options) {
     return response.json();
 }
 
-export const getAnalisesReuniao = async (page = 0, size = 10, filtros = {}) => {
+function filtrosParaParams(filtros = {}) {
     const params = new URLSearchParams();
-    params.set("page", String(page));
-    params.set("size", String(size));
-
     for (const produto of filtros.produtos ?? []) params.append("produtos", produto);
     for (const segmento of filtros.segmentos ?? []) params.append("segmentos", segmento);
     for (const risco of filtros.riscos ?? []) params.append("riscos", risco);
     for (const sentimento of filtros.sentimentos ?? []) params.append("sentimentos", sentimento);
+    return params;
+}
+
+export const getAnalisesReuniao = async (page = 0, size = 10, filtros = {}) => {
+    const params = filtrosParaParams(filtros);
+    params.set("page", String(page));
+    params.set("size", String(size));
 
     return request(`/api/analises?${params.toString()}`);
+};
+
+// Baixa o CSV de todas as análises que batem com os filtros (GET /api/analises/export).
+// Retorna { blob, filename } — o download em si fica com o componente.
+export const exportarAnalisesCsv = async (filtros = {}) => {
+    const params = filtrosParaParams(filtros);
+    const query = params.toString();
+
+    let response;
+    try {
+        response = await fetch(
+            `${API_BASE_URL}/api/analises/export${query ? `?${query}` : ""}`
+        );
+    } catch {
+        throw new Error("Não foi possível conectar à API.");
+    }
+
+    if (!response.ok) {
+        let mensagem = `A API respondeu com erro (HTTP ${response.status}).`;
+        try {
+            const corpo = await response.json();
+            if (Array.isArray(corpo?.messages) && corpo.messages.length > 0) {
+                mensagem = corpo.messages.join(" ");
+            } else if (typeof corpo?.message === "string" && corpo.message) {
+                mensagem = corpo.message;
+            }
+        } catch {
+            // corpo sem json, mantém mensagem padrão
+        }
+        throw new Error(mensagem);
+    }
+
+    const blob = await response.blob();
+    const disposition = response.headers.get("Content-Disposition") ?? "";
+    const match = disposition.match(/filename="?([^"]+)"?/i);
+    const filename = match?.[1] ?? "analises.csv";
+
+    return { blob, filename };
 };
 
 export const getAnaliseReuniaoById = async (id) => {
