@@ -4,11 +4,8 @@ import java.nio.charset.StandardCharsets;
 
 import org.springframework.util.DigestUtils;
 
-import br.com.bytestorm.insightflow.application.dto.response.AnaliseResponse;
-import br.com.bytestorm.insightflow.application.dto.response.ProdutoTotvsResponse;
 import br.com.bytestorm.insightflow.application.dto.response.ReuniaoResponse;
 import br.com.bytestorm.insightflow.application.dto.response.SegmentoClienteResponse;
-import br.com.bytestorm.insightflow.domain.entity.AnaliseReuniao;
 import br.com.bytestorm.insightflow.domain.entity.Reuniao;
 
 public class Helpers {
@@ -28,21 +25,6 @@ public class Helpers {
             reuniao.getDuracao(),
             SegmentoClienteResponse.fromEntity(reuniao.getSegmentoCliente()),
             reuniao.getCreatedAt()
-        );
-    }
-
-    public static AnaliseResponse resumirAnalise(AnaliseReuniao analiseReuniao) {
-        return new AnaliseResponse(
-            analiseReuniao.getId(),
-            analiseReuniao.getAssunto(),
-            analiseReuniao.getPontosPositivos(),
-            analiseReuniao.getPontosNegativos(),
-            analiseReuniao.getNota(),
-            ProdutoTotvsResponse.fromEntity(analiseReuniao.getProdutoTotvs()),
-            analiseReuniao.getSentimentoReuniao(),
-            analiseReuniao.getRiscoCancelamento(),
-            analiseReuniao.getMotivoCancelamento(),
-            resumirReuniao(analiseReuniao.getReuniao())
         );
     }
 

@@ -9,7 +9,9 @@ import br.com.bytestorm.insightflow.domain.entity.AnaliseReuniao;
 
 
 public interface AnaliseReuniaoRepository
-        extends JpaRepository<AnaliseReuniao, Long>, JpaSpecificationExecutor<AnaliseReuniao> {
+        extends JpaRepository<AnaliseReuniao, Long>,
+                JpaSpecificationExecutor<AnaliseReuniao>,
+                AnaliseReuniaoRepositoryCustom {
 
     Optional<AnaliseReuniao> findByReuniaoId(Long id);
 

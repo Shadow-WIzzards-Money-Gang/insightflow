@@ -1,6 +1,5 @@
 package br.com.bytestorm.insightflow.application.service;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -9,8 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,12 +15,15 @@ import br.com.bytestorm.insightflow.application.dto.ia.AnaliseIAResult;
 import br.com.bytestorm.insightflow.application.dto.request.AnaliseFiltroRequest;
 import br.com.bytestorm.insightflow.application.dto.request.AnaliseRequest;
 import br.com.bytestorm.insightflow.application.dto.response.AnaliseComMetricasResponse;
+import br.com.bytestorm.insightflow.application.dto.response.AnaliseCsvRow;
+import br.com.bytestorm.insightflow.application.dto.response.AnaliseListaResponse;
 import br.com.bytestorm.insightflow.application.dto.response.AnaliseResponse;
+import br.com.bytestorm.insightflow.application.dto.response.DistribuicaoRiscoResponse;
+import br.com.bytestorm.insightflow.application.dto.response.MetricasGlobais;
 import br.com.bytestorm.insightflow.application.dto.response.MetricasResponse;
 import br.com.bytestorm.insightflow.domain.entity.AnaliseReuniao;
 import br.com.bytestorm.insightflow.domain.entity.Reuniao;
 import br.com.bytestorm.insightflow.domain.entity.ProdutoTotvs;
-import br.com.bytestorm.insightflow.domain.entity.SegmentoCliente;
 import br.com.bytestorm.insightflow.domain.enums.RiscoCancelamento;
 import br.com.bytestorm.insightflow.domain.enums.SentimentoReuniao;
 import br.com.bytestorm.insightflow.domain.exceptions.ia.RespostaIAInvalidaException;
@@ -32,7 +32,6 @@ import br.com.bytestorm.insightflow.domain.exceptions.reuniao.ReuniaoNaoEncontra
 import br.com.bytestorm.insightflow.helpers.Helpers;
 import br.com.bytestorm.insightflow.infra.ai.AiClient;
 import br.com.bytestorm.insightflow.infra.repository.AnaliseReuniaoRepository;
-import br.com.bytestorm.insightflow.infra.repository.specification.AnaliseReuniaoSpecification;
 
 @Service
 public class AnaliseService {
@@ -134,36 +133,33 @@ public class AnaliseService {
 
     @Transactional(readOnly = true)
     public AnaliseComMetricasResponse buscarAnalises(Pageable pageable, AnaliseFiltroRequest filtro) {
-        Specification<AnaliseReuniao> spec = AnaliseReuniaoSpecification.comFiltros(filtro);
+        log.info("Consultando banco de dados - listando análises (page={}, size={})", pageable.getPageNumber(), pageable.getPageSize());
+        Page<AnaliseListaResponse> analises = this.analiseReuniaoRepository.buscarResumo(filtro, pageable);
+        log.info("Consulta finalizada - {} análise(s) na página, {} no total", analises.getNumberOfElements(), analises.getTotalElements());
 
-        log.info("Consultando banco de dados - buscando análises paginadas (page={}, size={})", pageable.getPageNumber(), pageable.getPageSize());
-        Page<AnaliseResponse> analises = this.analiseReuniaoRepository
-            .findAll(spec, pageable)
-            .map((a) -> Helpers.resumirAnalise(a));
-        log.info("Consulta finalizada - {} análises encontradas", analises.getTotalElements());
-
-        log.info("Consultando banco de dados - buscando análises para cálculo de métricas");
-        MetricasResponse metricas = metricaService.calcularMetricas(this.analiseReuniaoRepository.findAll(spec));
-        log.info("Consulta finalizada - métricas calculadas");
+        log.info("Consultando banco de dados - agregando métricas");
+        MetricasGlobais global = this.analiseReuniaoRepository.metricasGlobais(filtro);
+        List<DistribuicaoRiscoResponse> porProduto = this.analiseReuniaoRepository.distribuicaoRiscoPorProduto(filtro);
+        List<DistribuicaoRiscoResponse> porSegmento = this.analiseReuniaoRepository.distribuicaoRiscoPorSegmento(filtro);
+        MetricasResponse metricas = metricaService.montar(global, porProduto, porSegmento);
+        log.info("Consulta finalizada - métricas agregadas");
 
         return new AnaliseComMetricasResponse(metricas, analises);
     }
 
     @Transactional(readOnly = true)
     public String exportarAnalisesCsv(AnaliseFiltroRequest filtro) {
-        Specification<AnaliseReuniao> spec = AnaliseReuniaoSpecification.comFiltros(filtro);
-
         log.info("Consultando banco de dados - exportando análises em CSV (filtro={})", filtro);
-        List<AnaliseReuniao> analises = this.analiseReuniaoRepository.findAll(spec, Sort.by("id"));
-        log.info("Consulta finalizada - {} análise(s) para exportação", analises.size());
+        List<AnaliseCsvRow> linhas = this.analiseReuniaoRepository.buscarLinhasCsv(filtro);
+        log.info("Consulta finalizada - {} análise(s) para exportação", linhas.size());
 
-        List<List<String>> linhas = analises.stream()
-            .map(csvService::montarLinhaCsv)
-            .toList();
-
-        return csvService.gerar(CABECALHO_CSV, linhas);
+        return csvService.gerar(
+            CABECALHO_CSV,
+            linhas.stream().map(csvService::montarLinhaCsv).toList()
+        );
     }
 
+    @Transactional(readOnly = true)
     public AnaliseResponse buscarAnalisePorId(Long id) {
         log.info("Consultando banco de dados - buscando análise id={}", id);
         AnaliseResponse analise = this.analiseReuniaoRepository.findById(id)

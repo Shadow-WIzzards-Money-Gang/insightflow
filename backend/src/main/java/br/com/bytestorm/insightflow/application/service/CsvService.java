@@ -12,9 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import br.com.bytestorm.insightflow.domain.entity.AnaliseReuniao;
-import br.com.bytestorm.insightflow.domain.entity.Reuniao;
-import br.com.bytestorm.insightflow.domain.entity.SegmentoCliente;
+import br.com.bytestorm.insightflow.application.dto.response.AnaliseCsvRow;
 
 /**
  * Mecanica de geracao de CSV. Nao conhece o dominio: recebe o cabecalho + as
@@ -53,25 +51,22 @@ public class CsvService {
         return writer.toString();
     }
 
-    public List<String> montarLinhaCsv(AnaliseReuniao analise) {
-        Reuniao reuniao = analise.getReuniao();
-        SegmentoCliente segmento = reuniao.getSegmentoCliente();
-
+    public List<String> montarLinhaCsv(AnaliseCsvRow row) {
         return Arrays.asList(
-            String.valueOf(analise.getId()),
-            analise.getAssunto(),
-            analise.getPontosPositivos(),
-            analise.getPontosNegativos(),
-            String.valueOf(analise.getNota()),
-            analise.getSentimentoReuniao().name(),
-            analise.getRiscoCancelamento().name(),
-            analise.getMotivoCancelamento(),
-            analise.getProdutoTotvs().getNome(),
-            segmento == null ? null : segmento.getNome(),
-            reuniao.getDataReuniao() == null ? null : reuniao.getDataReuniao().toString(),
-            reuniao.getDuracao() == null ? null : reuniao.getDuracao().toString(),
-            reuniao.getHashTranscricao(),
-            limparTexto(reuniao.getTranscricaoBruta())
+            String.valueOf(row.id()),
+            row.assunto(),
+            row.pontosPositivos(),
+            row.pontosNegativos(),
+            String.valueOf(row.nota()),
+            row.sentimentoReuniao().name(),
+            row.riscoCancelamento().name(),
+            row.motivoCancelamento(),
+            row.produtoTotvs(),
+            row.segmentoCliente(),
+            row.dataReuniao() == null ? null : row.dataReuniao().toString(),
+            row.duracao() == null ? null : row.duracao().toString(),
+            row.hashTranscricao(),
+            limparTexto(row.transcricaoBruta())
         );
     }
 

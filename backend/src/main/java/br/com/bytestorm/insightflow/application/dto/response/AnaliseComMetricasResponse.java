@@ -4,7 +4,7 @@ import org.springframework.data.domain.Page;
 
 public record AnaliseComMetricasResponse(
     MetricasResponse metricas,
-    Page<AnaliseResponse> analises
+    Page<AnaliseListaResponse> analises
 ) {
 
 }
