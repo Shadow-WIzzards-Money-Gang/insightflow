@@ -7,6 +7,8 @@ import java.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -53,6 +55,7 @@ public class AnaliseReuniaoController {
     @GetMapping
     public ResponseEntity<AnaliseComMetricasResponse> buscarAnalises(
         @ModelAttribute AnaliseFiltroRequest filtro,
+        @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC)
         Pageable pageable
     ) {
         log.info("Requisição recebida: GET /api/analises - filtro={}, page={}, size={}", filtro, pageable.getPageNumber(), pageable.getPageSize());
