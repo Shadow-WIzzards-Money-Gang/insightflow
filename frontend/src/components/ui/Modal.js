@@ -2,7 +2,13 @@
 
 import { useCallback, useEffect } from "react";
 
-export default function Modal({ title, onClose, disableClose = false, children }) {
+export default function Modal({
+    title,
+    onClose,
+    disableClose = false,
+    footer = null,
+    children,
+}) {
     const fechar = useCallback(() => {
         if (disableClose) return;
         onClose?.();
@@ -66,6 +72,12 @@ export default function Modal({ title, onClose, disableClose = false, children }
                 <div className="flex flex-col gap-4 overflow-y-auto px-5 py-5">
                     {children}
                 </div>
+
+                {footer && (
+                    <div className="border-t border-secondary-bg-color px-5 py-4">
+                        {footer}
+                    </div>
+                )}
             </div>
         </div>
     );

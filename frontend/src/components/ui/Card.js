@@ -5,6 +5,7 @@ export default function Card({
     bgColor,
     borderColor,
     valueClassName = "text-3xl sm:text-4xl lg:text-6xl",
+    extra = null,
 }) {
     return (
         <div
@@ -16,6 +17,7 @@ export default function Card({
                 ${bgColor}
             `}
         >
+            {extra}
             <p
                     className={`
                     ${textColor}

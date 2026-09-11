@@ -98,7 +98,7 @@ export default function NovaAnaliseModal({ onClose, onAnalisado }) {
         );
 
         try {
-            await analisarReuniao(
+            const novaAnalise = await analisarReuniao(
                 transcricao.trim(),
                 dataReuniao,
                 normalizarDuracao(duracao),
@@ -106,7 +106,7 @@ export default function NovaAnaliseModal({ onClose, onAnalisado }) {
             );
 
             toast.success("Reunião analisada com sucesso!", { id: toastId });
-            onAnalisado?.();
+            onAnalisado?.(novaAnalise);
             onClose?.();
         } catch (erro) {
             toast.error(erro.message ?? "Erro ao analisar a reunião.", { id: toastId });

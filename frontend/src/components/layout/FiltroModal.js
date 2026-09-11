@@ -168,7 +168,42 @@ export default function FiltroModal({ onClose }) {
     const nadaParaLimpar = totalRascunho === 0 && totalFiltrosAtivos === 0;
 
     return (
-        <Modal title="Filtrar" onClose={fecharAplicando}>
+        <Modal
+            title="Filtrar"
+            onClose={fecharAplicando}
+            footer={
+                <div className="flex flex-col gap-3">
+                    <p className="text-xs text-secondary-text opacity-60">
+                        Fechar o modal (clicar fora, Esc ou X) já aplica o que estiver
+                        selecionado.
+                    </p>
+                    <div className="flex items-center justify-between gap-2">
+                        <button
+                            type="button"
+                            onClick={limpar}
+                            disabled={nadaParaLimpar}
+                            className={`
+                                rounded px-4 py-2 text-sm font-medium text-secondary-text
+                                transition-opacity hover:opacity-70
+                                disabled:cursor-not-allowed disabled:opacity-40
+                            `}
+                        >
+                            Limpar filtros
+                        </button>
+                        <button
+                            type="button"
+                            onClick={fecharAplicando}
+                            className={`
+                                rounded bg-primary-text px-4 py-2 text-sm font-medium
+                                text-primary-bg-card-color transition-opacity hover:opacity-90
+                            `}
+                        >
+                            Filtrar
+                        </button>
+                    </div>
+                </div>
+            }
+        >
             <div className="flex flex-col gap-5">
                 <div className="flex flex-col gap-2 rounded border-2 border-secondary-bg-color bg-primary-bg-card-color px-3 py-2">
                     <span className="text-xs font-medium uppercase tracking-wide text-primary-text">
@@ -231,34 +266,6 @@ export default function FiltroModal({ onClose }) {
                     onToggle={alternar}
                 />
 
-                <p className="text-xs text-secondary-text opacity-60">
-                    Fechar o modal (clicar fora, Esc ou X) já aplica o que estiver selecionado.
-                </p>
-
-                <div className="-mt-2 flex items-center justify-between gap-2">
-                    <button
-                        type="button"
-                        onClick={limpar}
-                        disabled={nadaParaLimpar}
-                        className={`
-                            rounded px-4 py-2 text-sm font-medium text-secondary-text
-                            transition-opacity hover:opacity-70
-                            disabled:cursor-not-allowed disabled:opacity-40
-                        `}
-                    >
-                        Limpar filtros
-                    </button>
-                    <button
-                        type="button"
-                        onClick={fecharAplicando}
-                        className={`
-                            rounded bg-primary-text px-4 py-2 text-sm font-medium
-                            text-primary-bg-card-color transition-opacity hover:opacity-90
-                        `}
-                    >
-                        Filtrar
-                    </button>
-                </div>
             </div>
         </Modal>
     );

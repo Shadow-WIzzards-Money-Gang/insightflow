@@ -7,6 +7,7 @@ import AnaliseDetalhesModal from "@/components/layout/AnaliseDetalhesModal";
 import GraficosSection from "@/components/layout/GraficosSection";
 import ExportarButton from "@/components/layout/ExportarButton";
 import Card from "@/components/ui/Card";
+import FiltroBadge from "@/components/ui/FiltroBadge";
 import NextPage from "@/components/ui/nextPage";
 import PrevPage from "@/components/ui/prevPage";
 import Loading from "@/components/ui/Loading";
@@ -15,6 +16,7 @@ import { getAnalisesReuniao } from "@/services/api";
 import {
   lerListaCache,
   gravarListaCache,
+  gravarDetalheCache,
   invalidarCacheAnalises,
 } from "@/lib/cache/analisesCache";
 import { useFiltros } from "@/context/FiltrosProvider";
@@ -75,6 +77,7 @@ export default function Home() {
   const [revalidando, setRevalidando] = useState(false);
   const [error, setError] = useState(null);
   const [analiseSelecionada, setAnaliseSelecionada] = useState(null);
+  const [metricasSemFiltro, setMetricasSemFiltro] = useState(null);
 
   // Descarta respostas de requisições antigas (troca rápida de filtro/página)
   const requisicaoRef = useRef(0);
@@ -156,19 +159,77 @@ export default function Home() {
   const produtoCritico = metricas?.produtoMaisCritico ?? null;
   const segmentoCritico = metricas?.segmentoMaisCritico ?? null;
 
+  // Sem nenhuma análise no recorte atual, mostra "—" em todos os cards em vez de
+  // misturar "0" (contagens) com "—" (médias/críticos) — fica mais consistente.
+  const semResultados = metricas != null && (metricas.totalReunioes ?? 0) === 0;
+  const valorCard = (valor) => (semResultados ? "—" : valor);
+
+  // Valores equivalentes sem filtro, só para comparação nos badges dos cards.
+  const totalReunioesSemFiltro = metricasSemFiltro?.totalReunioes ?? null;
+  const totalChurnSemFiltro =
+    metricasSemFiltro != null
+      ? (metricasSemFiltro.totalRiscoMuitoAlto ?? 0) + (metricasSemFiltro.totalRiscoAlto ?? 0)
+      : null;
+  const sentimentoSemFiltro =
+    metricasSemFiltro != null
+      ? SENTIMENTO_LABEL[metricasSemFiltro.sentimentoMedio] ?? null
+      : null;
+  const notaSemFiltro =
+    metricasSemFiltro != null && metricasSemFiltro.notaMedia != null
+      ? metricasSemFiltro.notaMedia.toFixed(1)
+      : null;
+  const produtoCriticoSemFiltro = metricasSemFiltro?.produtoMaisCritico?.rotulo ?? null;
+  const segmentoCriticoSemFiltro = metricasSemFiltro?.segmentoMaisCritico?.rotulo ?? null;
+
   useEffect(() => {
     carregarAnalises(page, filtros);
   }, [page, filtros, carregarAnalises]);
 
   useEffect(() => {
-    const recarregar = () => {
+    const recarregar = (evento) => {
       // Uma nova análise muda contagens e métricas de qualquer recorte.
       invalidarCacheAnalises();
       carregarAnalises(page, filtros);
+
+      const novaAnalise = evento?.detail?.analise;
+      if (novaAnalise?.id != null) {
+        // Já temos os dados completos da resposta de criação: preenche o
+        // cache de detalhe para o modal abrir sem spinner.
+        gravarDetalheCache(novaAnalise.id, novaAnalise);
+        setAnaliseSelecionada(novaAnalise.id);
+      }
     };
     window.addEventListener("analise:criada", recarregar);
     return () => window.removeEventListener("analise:criada", recarregar);
   }, [page, filtros, carregarAnalises]);
+
+  // Com filtro ativo, busca as métricas sem filtro só para comparação nos badges dos cards.
+  const temFiltro = totalFiltrosAtivos > 0;
+  useEffect(() => {
+    if (!temFiltro) {
+      setMetricasSemFiltro(null);
+      return;
+    }
+
+    let ativo = true;
+
+    const cache = lerListaCache(0, {});
+    if (cache?.metricas != null) {
+      setMetricasSemFiltro(cache.metricas);
+    }
+
+    getAnalisesReuniao(0, 1, {})
+      .then((dados) => {
+        if (ativo) setMetricasSemFiltro(dados.metricas ?? null);
+      })
+      .catch(() => {
+        // Indicador é só informativo: se falhar, mantém o que já tinha (ou nada).
+      });
+
+    return () => {
+      ativo = false;
+    };
+  }, [temFiltro]);
 
   const podeVoltar = page > 0 && !loading;
   const podeAvancar = page < totalPages - 1 && !loading;
@@ -194,40 +255,64 @@ export default function Home() {
       <div className={`flex flex-col gap-2 sm:gap-3 transition-opacity ${loading && metricas != null ? "opacity-40" : ""}`}>
       <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
         <Card
-          value={metricas != null ? String(metricas.totalReunioes ?? 0) : "—"}
+          value={valorCard(metricas != null ? String(metricas.totalReunioes ?? 0) : "—")}
           label="Reuniões analisadas"
           textColor="text-primary-text"
           bgColor="bg-primary-bg-card-color"
           borderColor="border-primary-text"
+          extra={
+            totalFiltrosAtivos > 0 ? (
+              <FiltroBadge valorSemFiltro={totalReunioesSemFiltro} />
+            ) : null
+          }
         />
         <Card
-          value={totalChurn != null ? String(totalChurn) : "—"}
+          value={valorCard(totalChurn != null ? String(totalChurn) : "—")}
           label="Risco de Churn"
           textColor="text-error-color"
           bgColor="bg-secondary-bg-card-color"
           borderColor="border-error-color"
+          extra={
+            totalFiltrosAtivos > 0 ? (
+              <FiltroBadge
+                valorSemFiltro={
+                  totalChurnSemFiltro != null ? String(totalChurnSemFiltro) : null
+                }
+              />
+            ) : null
+          }
         />
         <Card
-          value={
+          value={valorCard(
             metricas != null
               ? SENTIMENTO_LABEL[metricas.sentimentoMedio] ?? "—"
               : "—"
-          }
+          )}
           label="Sentimento médio"
           textColor={coresSentimento.textColor}
           bgColor={coresSentimento.bgColor}
           borderColor={coresSentimento.borderColor}
+          extra={
+            totalFiltrosAtivos > 0 ? (
+              <FiltroBadge valorSemFiltro={sentimentoSemFiltro} />
+            ) : null
+          }
         />
         <Card
-          value={
+          value={valorCard(
             metricas != null && metricas.notaMedia != null
               ? metricas.notaMedia.toFixed(1)
               : "—"
-          }
+          )}
           label="Score médio"
           textColor={coresNota.textColor}
           bgColor={coresNota.bgColor}
           borderColor={coresNota.borderColor}
+          extra={
+            totalFiltrosAtivos > 0 ? (
+              <FiltroBadge valorSemFiltro={notaSemFiltro} />
+            ) : null
+          }
         />
       </div>
 
@@ -238,6 +323,11 @@ export default function Home() {
           textColor={produtoCritico != null ? CORES.vermelho.textColor : CORES.neutra.textColor}
           bgColor={produtoCritico != null ? CORES.vermelho.bgColor : CORES.neutra.bgColor}
           borderColor={produtoCritico != null ? CORES.vermelho.borderColor : CORES.neutra.borderColor}
+          extra={
+            totalFiltrosAtivos > 0 ? (
+              <FiltroBadge valorSemFiltro={produtoCriticoSemFiltro} />
+            ) : null
+          }
         />
         <Card
           value={segmentoCritico?.rotulo ?? "—"}
@@ -245,6 +335,11 @@ export default function Home() {
           textColor={segmentoCritico != null ? CORES.vermelho.textColor : CORES.neutra.textColor}
           bgColor={segmentoCritico != null ? CORES.vermelho.bgColor : CORES.neutra.bgColor}
           borderColor={segmentoCritico != null ? CORES.vermelho.borderColor : CORES.neutra.borderColor}
+          extra={
+            totalFiltrosAtivos > 0 ? (
+              <FiltroBadge valorSemFiltro={segmentoCriticoSemFiltro} />
+            ) : null
+          }
         />
       </div>
       </div>

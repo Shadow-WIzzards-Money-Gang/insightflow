@@ -14,8 +14,12 @@ export default function NovaAnaliseButton() {
             {aberto && (
                 <NovaAnaliseModal
                     onClose={() => setAberto(false)}
-                    onAnalisado={() => {
-                        window.dispatchEvent(new Event("analise:criada"));
+                    onAnalisado={(novaAnalise) => {
+                        window.dispatchEvent(
+                            new CustomEvent("analise:criada", {
+                                detail: { analise: novaAnalise },
+                            })
+                        );
                     }}
                 />
             )}
