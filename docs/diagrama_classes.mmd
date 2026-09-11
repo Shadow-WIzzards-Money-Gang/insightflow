@@ -1,0 +1,101 @@
+classDiagram
+    direction TB
+
+    class BaseEntity {
+        <<abstract>>
+        -LocalDateTime createdAt
+        -LocalDateTime updatedAt
+        +getCreatedAt() LocalDateTime
+        +getUpdatedAt() LocalDateTime
+        #onCreate() void
+        #onUpdate() void
+    }
+
+    class AnaliseReuniao {
+        <<entity>>
+        -Long id
+        -String assunto
+        -String pontosPositivos
+        -String pontosNegativos
+        -Integer nota
+        -Reuniao reuniao
+        -ProdutoTotvs produtoTotvs
+        -SentimentoReuniao sentimentoReuniao
+        -RiscoCancelamento riscoCancelamento
+        -String motivoCancelamento
+        +getId() Long
+        +getAssunto() String
+        +getPontosPositivos() String
+        +getPontosNegativos() String
+        +getNota() Integer
+        +getReuniao() Reuniao
+        +getProdutoTotvs() ProdutoTotvs
+        +getSentimentoReuniao() SentimentoReuniao
+        +getRiscoCancelamento() RiscoCancelamento
+        +getMotivoCancelamento() String
+    }
+
+    class ProdutoTotvs {
+        <<entity>>
+        -Long id
+        -String nome
+        -String categoria
+        +getId() Long
+        +getNome() String
+        +getCategoria() String
+    }
+
+    class Reuniao {
+        <<entity>>
+        -Long id
+        -String transcricaoBruta
+        -String hashTranscricao
+        -LocalDateTime dataReuniao
+        -LocalTime duracao
+        -SegmentoCliente segmentoCliente
+        +getId() Long
+        +getTranscricaoBruta() String
+        +getHashTranscricao() String
+        +getDataReuniao() LocalDateTime
+        +getDuracao() LocalTime
+        +getSegmentoCliente() SegmentoCliente
+    }
+
+    class SegmentoCliente {
+        <<entity>>
+        -Long id
+        -String nome
+        +getId() Long
+        +getNome() String
+    }
+
+    class SentimentoReuniao {
+        <<enumeration>>
+        POSITIVO
+        NEUTRO
+        NEGATIVO
+        -double valor
+        +getValor() double
+        +fromString(String s) SentimentoReuniao$
+        +fromValor(double valor) SentimentoReuniao$
+    }
+
+    class RiscoCancelamento {
+        <<enumeration>>
+        MUITO_ALTO
+        ALTO
+        MODERADO
+        BAIXO
+        +fromString(String s) RiscoCancelamento$
+    }
+
+    BaseEntity <|-- AnaliseReuniao
+    BaseEntity <|-- ProdutoTotvs
+    BaseEntity <|-- Reuniao
+    BaseEntity <|-- SegmentoCliente
+
+    AnaliseReuniao "1" --> "1" Reuniao : reuniao
+    AnaliseReuniao "*" --> "1" ProdutoTotvs : produtoTotvs
+    AnaliseReuniao "1" --> "1" SentimentoReuniao : sentimentoReuniao
+    AnaliseReuniao "1" --> "1" RiscoCancelamento : riscoCancelamento
+    Reuniao "*" --> "0..1" SegmentoCliente : segmentoCliente
