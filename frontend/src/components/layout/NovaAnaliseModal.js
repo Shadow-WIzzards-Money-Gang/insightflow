@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 
 import Modal from "@/components/ui/Modal";
 import { analisarReuniao, getSegmentosClientes } from "@/services/api";
+import { MOCK_NOVA_ANALISE } from "@/data/mockNovaAnalise";
 
 function normalizarDuracao(valor) {
     if (!valor) return valor;
@@ -31,9 +32,9 @@ function validar({ transcricao, dataReuniao, duracao, segmentoId }) {
 }
 
 export default function NovaAnaliseModal({ onClose, onAnalisado }) {
-    const [transcricao, setTranscricao] = useState("");
-    const [dataReuniao, setDataReuniao] = useState("");
-    const [duracao, setDuracao] = useState("");
+    const [transcricao, setTranscricao] = useState(MOCK_NOVA_ANALISE.transcricao);
+    const [dataReuniao, setDataReuniao] = useState(MOCK_NOVA_ANALISE.dataReuniao);
+    const [duracao, setDuracao] = useState(MOCK_NOVA_ANALISE.duracao);
     const [segmentoId, setSegmentoId] = useState("");
 
     const [erros, setErros] = useState({});
@@ -57,7 +58,17 @@ export default function NovaAnaliseModal({ onClose, onAnalisado }) {
 
         getSegmentosClientes()
             .then((dados) => {
-                if (ativo) setSegmentos(Array.isArray(dados) ? dados : []);
+                const lista = Array.isArray(dados) ? dados : [];
+                if (!ativo) return;
+
+                setSegmentos(lista);
+
+                const segmentoMock = lista.find(
+                    (segmento) =>
+                        segmento.nome?.toLowerCase() ===
+                        MOCK_NOVA_ANALISE.segmentoNome.toLowerCase()
+                );
+                if (segmentoMock) setSegmentoId(String(segmentoMock.id));
             })
             .catch((e) => {
                 if (ativo) {
