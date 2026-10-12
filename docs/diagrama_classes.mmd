@@ -1,16 +1,7 @@
 classDiagram
     direction TB
 
-    class BaseEntity {
-        <<abstract>>
-        -LocalDateTime createdAt
-        -LocalDateTime updatedAt
-        +getCreatedAt() LocalDateTime
-        +getUpdatedAt() LocalDateTime
-        #onCreate() void
-        #onUpdate() void
-    }
-
+    %% ===================== Dominio: entidades =====================
     class AnaliseReuniao {
         <<entity>>
         -Long id
@@ -23,6 +14,8 @@ classDiagram
         -SentimentoReuniao sentimentoReuniao
         -RiscoCancelamento riscoCancelamento
         -String motivoCancelamento
+        +aPartirDe(ResultadoAnaliseIA, Reuniao, ProdutoTotvs) AnaliseReuniao$
+        +reconstituir(...) AnaliseReuniao$
         +getId() Long
         +getAssunto() String
         +getPontosPositivos() String
@@ -35,40 +28,48 @@ classDiagram
         +getMotivoCancelamento() String
     }
 
+    class Reuniao {
+        <<entity>>
+        -Long id
+        -String transcricaoBruta
+        -HashTranscricao hashTranscricao
+        -LocalDateTime dataReuniao
+        -LocalTime duracao
+        -SegmentoCliente segmentoCliente
+        -LocalDateTime createdAt
+        +nova(transcricaoBruta, dataReuniao, duracao, segmentoCliente) Reuniao$
+        +reconstituir(...) Reuniao$
+        +getId() Long
+        +getTranscricaoBruta() String
+        +getHashTranscricao() HashTranscricao
+        +getDataReuniao() LocalDateTime
+        +getDuracao() LocalTime
+        +getSegmentoCliente() SegmentoCliente
+    }
+
     class ProdutoTotvs {
         <<entity>>
         -Long id
         -String nome
         -String categoria
+        +novo(nome, categoria) ProdutoTotvs$
+        +reconstituir(id, nome, categoria) ProdutoTotvs$
         +getId() Long
         +getNome() String
         +getCategoria() String
-    }
-
-    class Reuniao {
-        <<entity>>
-        -Long id
-        -String transcricaoBruta
-        -String hashTranscricao
-        -LocalDateTime dataReuniao
-        -LocalTime duracao
-        -SegmentoCliente segmentoCliente
-        +getId() Long
-        +getTranscricaoBruta() String
-        +getHashTranscricao() String
-        +getDataReuniao() LocalDateTime
-        +getDuracao() LocalTime
-        +getSegmentoCliente() SegmentoCliente
     }
 
     class SegmentoCliente {
         <<entity>>
         -Long id
         -String nome
+        +novo(nome) SegmentoCliente$
+        +reconstituir(id, nome) SegmentoCliente$
         +getId() Long
         +getNome() String
     }
 
+    %% ===================== Dominio: enums =====================
     class SentimentoReuniao {
         <<enumeration>>
         POSITIVO
@@ -89,13 +90,116 @@ classDiagram
         +fromString(String s) RiscoCancelamento$
     }
 
-    BaseEntity <|-- AnaliseReuniao
-    BaseEntity <|-- ProdutoTotvs
-    BaseEntity <|-- Reuniao
-    BaseEntity <|-- SegmentoCliente
+    %% ===================== Dominio: value objects =====================
+    class HashTranscricao {
+        <<value object>>
+        -String valor
+        +de(String transcricao) HashTranscricao$
+    }
 
+    class ResultadoAnaliseIA {
+        <<value object>>
+        -String assunto
+        -String pontosPositivos
+        -String pontosNegativos
+        -Integer nota
+        -String sentimentoReuniao
+        -String riscoCancelamento
+        -String motivoCancelamento
+        -String produtoTotvsNome
+        +validar() void
+    }
+
+    %% ===================== Dominio: portas (interfaces) =====================
+    class ReuniaoRepository {
+        <<interface>>
+        +salvar(Reuniao) Reuniao
+        +buscarPorId(Long) Optional~Reuniao~
+        +buscarPorHashTranscricao(HashTranscricao) Optional~Reuniao~
+        +buscarTodas(Paginacao) Pagina~Reuniao~
+    }
+
+    class AnaliseReuniaoRepository {
+        <<interface>>
+        +salvar(AnaliseReuniao) AnaliseReuniao
+        +buscarPorId(Long) Optional~AnaliseReuniao~
+        +buscarPorReuniaoId(Long) Optional~AnaliseReuniao~
+        +buscarResumo(FiltroAnalise, Paginacao) Pagina~AnaliseResumo~
+        +totais(FiltroAnalise) TotaisAnalises
+        +distribuicaoRiscoPorProduto(FiltroAnalise) List~DistribuicaoRisco~
+        +distribuicaoRiscoPorSegmento(FiltroAnalise) List~DistribuicaoRisco~
+        +buscarParaExportacao(FiltroAnalise) List~AnaliseExportacao~
+    }
+
+    class ProdutoTotvsRepository {
+        <<interface>>
+        +salvar(ProdutoTotvs) ProdutoTotvs
+        +remover(ProdutoTotvs) void
+        +buscarTodos() List~ProdutoTotvs~
+        +buscarPorCategoria(String) List~ProdutoTotvs~
+        +buscarPorId(Long) Optional~ProdutoTotvs~
+        +buscarPorNome(String) Optional~ProdutoTotvs~
+        +existePorNome(String) boolean
+    }
+
+    class SegmentoClienteRepository {
+        <<interface>>
+        +salvar(SegmentoCliente) SegmentoCliente
+        +remover(SegmentoCliente) void
+        +buscarTodos() List~SegmentoCliente~
+        +buscarPorId(Long) Optional~SegmentoCliente~
+        +buscarPorNome(String) Optional~SegmentoCliente~
+        +existePorNome(String) boolean
+    }
+
+    class AnalisadorReuniaoGateway {
+        <<interface>>
+        +analisar(String transcricao, String produtosDisponiveis) ResultadoAnaliseIA
+    }
+
+    %% ===================== Infra: adaptadores das portas =====================
+    class ReuniaoRepositoryAdapter {
+        <<adapter>>
+    }
+
+    class AnaliseReuniaoRepositoryAdapter {
+        <<adapter>>
+    }
+
+    class ProdutoTotvsRepositoryAdapter {
+        <<adapter>>
+    }
+
+    class SegmentoClienteRepositoryAdapter {
+        <<adapter>>
+    }
+
+    class AiClient {
+        <<adapter>>
+        -ChatClient chatClient
+        -String systemInstruction
+        +analisar(String transcricao, String produtosDisponiveis) ResultadoAnaliseIA
+    }
+
+    %% ===================== Relacoes do dominio =====================
     AnaliseReuniao "1" --> "1" Reuniao : reuniao
     AnaliseReuniao "*" --> "1" ProdutoTotvs : produtoTotvs
     AnaliseReuniao "1" --> "1" SentimentoReuniao : sentimentoReuniao
     AnaliseReuniao "1" --> "1" RiscoCancelamento : riscoCancelamento
     Reuniao "*" --> "0..1" SegmentoCliente : segmentoCliente
+    Reuniao "1" --> "1" HashTranscricao : hashTranscricao
+    AnaliseReuniao ..> ResultadoAnaliseIA : aPartirDe()
+
+    %% ===================== Portas dependem do dominio =====================
+    ReuniaoRepository ..> Reuniao
+    AnaliseReuniaoRepository ..> AnaliseReuniao
+    ProdutoTotvsRepository ..> ProdutoTotvs
+    SegmentoClienteRepository ..> SegmentoCliente
+    AnalisadorReuniaoGateway ..> ResultadoAnaliseIA
+
+    %% ===================== Adaptadores implementam as portas (ports & adapters) =====================
+    ReuniaoRepositoryAdapter ..|> ReuniaoRepository
+    AnaliseReuniaoRepositoryAdapter ..|> AnaliseReuniaoRepository
+    ProdutoTotvsRepositoryAdapter ..|> ProdutoTotvsRepository
+    SegmentoClienteRepositoryAdapter ..|> SegmentoClienteRepository
+    AiClient ..|> AnalisadorReuniaoGateway

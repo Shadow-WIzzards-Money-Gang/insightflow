@@ -33,12 +33,24 @@ Monorepo com três partes:
 | `data/`          | Script Python para popular a API a partir de `reunioes.json`          |
 | `backend/docker/`| `docker-compose` do banco Oracle para desenvolvimento               |
 
-O backend segue arquitetura em camadas: `presentation` (controllers) → `application`
-(services / DTOs) → `domain` (entidades e enums) → repositórios (Spring Data JPA +
-Specifications para os filtros). A listagem e as métricas do dashboard usam **projeções
-DTO e agregação no banco** (Criteria API): a página vem numa única query, as métricas
-(`COUNT` / `AVG` / `GROUP BY`) são calculadas no Oracle — sem N+1 e sem carregar as
-transcrições na memória.
+O backend segue **arquitetura hexagonal (ports & adapters)**: o `domain` é Java puro —
+entidades (`domain/entity`), enums, value objects (`domain/vo`) e exceções de negócio —
+sem nenhuma dependência de Spring ou JPA, e por isso testável sem subir contexto algum
+(`src/test/.../domain`). O acesso a dados e a chamada à IA são descritos no domínio como
+**portas** (interfaces em `domain/repository` e `domain/gateway`), implementadas por
+**adaptadores** em `infra/persistence` (Spring Data JPA para CRUD simples + Criteria API
+para os filtros dinâmicos, com `*JpaEntity` e mappers dedicados convertendo para o
+domínio) e `infra/ai` (`AiClient`
+implementa `AnalisadorReuniaoGateway`). A camada `application` orquestra os casos de uso
+(services) sobre essas portas e expõe DTOs de request/response; `presentation` tem os
+controllers e o `GlobalExceptionHandler`, que traduz as exceções de domínio (regra de
+negócio, não encontrado, integração inválida, serviço indisponível) para o status HTTP
+correspondente. A listagem e as métricas do dashboard usam **projeções DTO e agregação no
+banco** (Criteria API): a página vem numa única query, as métricas (`COUNT` / `AVG` /
+`GROUP BY`) são calculadas no Oracle — sem N+1 e sem carregar as transcrições na memória.
+
+Diagrama de classes do domínio (entidades, value objects, portas e adaptadores) em
+[`docs/diagrama_classes.mmd`](docs/diagrama_classes.mmd).
 
 ---
 
@@ -126,6 +138,8 @@ Enums: `SentimentoReuniao` (`POSITIVO`, `NEUTRO`, `NEGATIVO`) e `RiscoCancelamen
 (`MUITO_ALTO`, `ALTO`, `MODERADO`, `BAIXO`).
 
 Produtos e segmentos são pré-carregados pela migration `V2`.
+
+Diagrama entidade-relacionamento em [`docs/modelo_banco_de_dados.png`](docs/modelo_banco_de_dados.png).
 
 ---
 
@@ -220,10 +234,30 @@ O script chama a IA para cada reunião (é lento) e grava um checkpoint em
 insightflow/
 ├── backend/
 │   ├── src/main/java/br/com/bytestorm/insightflow/
-│   │   ├── presentation/controller/   # endpoints REST
-│   │   ├── application/                # services, DTOs
-│   │   ├── domain/                     # entidades, enums, exceções
-│   │   └── infra/                      # repositórios, IA, config
+│   │   ├── presentation/
+│   │   │   ├── controller/             # endpoints REST
+│   │   │   └── handler/                # GlobalExceptionHandler (excecao de dominio -> HTTP)
+│   │   ├── application/
+│   │   │   ├── dto/                    # requests/responses da API
+│   │   │   ├── mapper/                 # DTO <-> value object de dominio
+│   │   │   └── service/                # casos de uso, orquestram as portas do dominio
+│   │   ├── domain/                     # Java puro, sem Spring/JPA
+│   │   │   ├── entity/                 # entidades (Reuniao, AnaliseReuniao, ...)
+│   │   │   ├── enums/                  # SentimentoReuniao, RiscoCancelamento
+│   │   │   ├── vo/                     # value objects (FiltroAnalise, Paginacao, ...)
+│   │   │   ├── repository/             # portas de persistencia (interfaces)
+│   │   │   ├── gateway/                # porta da analise por IA (interface)
+│   │   │   └── exceptions/             # excecoes de dominio
+│   │   └── infra/
+│   │       ├── persistence/
+│   │       │   ├── entity/             # *JpaEntity (anotacoes JPA)
+│   │       │   ├── repository/         # *JpaRepository (Spring Data)
+│   │       │   ├── query/              # consultas Criteria API (filtros, metricas, exportacao)
+│   │       │   ├── mapper/             # JpaEntity <-> entidade de dominio
+│   │       │   └── adapter/            # implementam as portas de domain/repository
+│   │       ├── ai/                     # AiClient, implementa domain/gateway
+│   │       └── config/                 # CorsConfig etc.
+│   ├── src/test/java/.../domain/       # testes unitarios de dominio (sem contexto Spring)
 │   ├── src/main/resources/
 │   │   ├── application.properties
 │   │   ├── db/migration/               # Flyway
@@ -238,6 +272,9 @@ insightflow/
 │       ├── lib/relatorio/              # geração do PDF
 │       ├── lib/cache/                  # cache stale-while-revalidate das análises
 │       └── services/api.js
+├── docs/
+│   ├── diagrama_classes.mmd            # diagrama de classes do dominio (Mermaid)
+│   └── modelo_banco_de_dados.png       # diagrama entidade-relacionamento
 └── data/
     ├── populate_api.py
     └── reunioes.json
