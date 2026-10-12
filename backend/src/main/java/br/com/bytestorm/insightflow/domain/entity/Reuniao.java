@@ -3,48 +3,83 @@ package br.com.bytestorm.insightflow.domain.entity;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import br.com.bytestorm.insightflow.domain.exceptions.erro.RegraDeNegocioException;
+import br.com.bytestorm.insightflow.domain.vo.HashTranscricao;
 
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@Entity
-@Table(name = "reunioes")
-public class Reuniao extends BaseEntity {
+public class Reuniao {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private final Long id;
+    private final String transcricaoBruta;
+    private final HashTranscricao hashTranscricao;
+    private final LocalDateTime dataReuniao;
+    private final LocalTime duracao;
+    private final SegmentoCliente segmentoCliente;
+    private final LocalDateTime createdAt;
 
-    @Lob
-    @Column(name = "transcricao_bruta")
-    private String transcricaoBruta;
+    private Reuniao(
+        Long id, String transcricaoBruta, HashTranscricao hashTranscricao, LocalDateTime dataReuniao,
+        LocalTime duracao, SegmentoCliente segmentoCliente, LocalDateTime createdAt
+    ) {
+        this.id = id;
+        this.transcricaoBruta = transcricaoBruta;
+        this.hashTranscricao = hashTranscricao;
+        this.dataReuniao = dataReuniao;
+        this.duracao = duracao;
+        this.segmentoCliente = segmentoCliente;
+        this.createdAt = createdAt;
+    }
 
-    @Column(name = "hash_transcricao", nullable = false, unique = true)
-    private String hashTranscricao;
+    /**
+     * Registra uma nova reuniao. O hash da transcricao e o que identifica a
+     * reuniao: duas reunioes com a mesma transcricao sao a mesma reuniao.
+     */
+    public static Reuniao nova(
+        String transcricaoBruta, LocalDateTime dataReuniao, LocalTime duracao, SegmentoCliente segmentoCliente
+    ) {
+        if (transcricaoBruta == null || transcricaoBruta.isBlank()) {
+            throw new RegraDeNegocioException("A transcricao nao pode estar vazia!");
+        }
+        if (segmentoCliente == null) {
+            throw new RegraDeNegocioException("O segmento do cliente nao pode estar vazio!");
+        }
+        return new Reuniao(
+            null, transcricaoBruta, HashTranscricao.de(transcricaoBruta), dataReuniao, duracao, segmentoCliente, null
+        );
+    }
 
-    @Column(name = "data_reuniao")
-    private LocalDateTime dataReuniao;
+    /** Remonta uma reuniao ja persistida, sem revalidar as regras de criacao. */
+    public static Reuniao reconstituir(
+        Long id, String transcricaoBruta, HashTranscricao hashTranscricao, LocalDateTime dataReuniao,
+        LocalTime duracao, SegmentoCliente segmentoCliente, LocalDateTime createdAt
+    ) {
+        return new Reuniao(id, transcricaoBruta, hashTranscricao, dataReuniao, duracao, segmentoCliente, createdAt);
+    }
 
-    @Column(name = "duracao")
-    private LocalTime duracao;
+    public Long getId() {
+        return id;
+    }
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "segmento_cliente_id")
-    private SegmentoCliente segmentoCliente;
+    public String getTranscricaoBruta() {
+        return transcricaoBruta;
+    }
 
+    public HashTranscricao getHashTranscricao() {
+        return hashTranscricao;
+    }
+
+    public LocalDateTime getDataReuniao() {
+        return dataReuniao;
+    }
+
+    public LocalTime getDuracao() {
+        return duracao;
+    }
+
+    public SegmentoCliente getSegmentoCliente() {
+        return segmentoCliente;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
 }

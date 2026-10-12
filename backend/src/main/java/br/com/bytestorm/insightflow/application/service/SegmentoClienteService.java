@@ -11,7 +11,7 @@ import br.com.bytestorm.insightflow.application.dto.response.SegmentoClienteResp
 import br.com.bytestorm.insightflow.domain.entity.SegmentoCliente;
 import br.com.bytestorm.insightflow.domain.exceptions.segmentoCliente.SegmentoJaCadastradoException;
 import br.com.bytestorm.insightflow.domain.exceptions.segmentoCliente.SegmentoNaoEncontradoException;
-import br.com.bytestorm.insightflow.infra.repository.SegmentoClienteRepository;
+import br.com.bytestorm.insightflow.domain.repository.SegmentoClienteRepository;
 
 @Service
 public class SegmentoClienteService {
@@ -26,7 +26,7 @@ public class SegmentoClienteService {
 
     public void cadastrarSegmentoCliente(SegmentoClienteRequest request) {
         log.info("Consultando banco de dados - verificando existência do segmento '{}'", request.nome());
-        boolean jaExiste = segmentoClienteRepository.existsByNomeIgnoreCase(request.nome());
+        boolean jaExiste = segmentoClienteRepository.existePorNome(request.nome());
         log.info("Consulta finalizada - segmento '{}' já existe: {}", request.nome(), jaExiste);
 
         if (jaExiste) {
@@ -34,13 +34,13 @@ public class SegmentoClienteService {
         }
 
         log.info("Consultando banco de dados - salvando segmento '{}'", request.nome());
-        segmentoClienteRepository.save(request.toEntity());
+        segmentoClienteRepository.salvar(request.toEntity());
         log.info("Consulta finalizada - segmento '{}' salvo", request.nome());
     }
 
     public List<SegmentoClienteResponse> buscarTodos() {
         log.info("Consultando banco de dados - buscando todos os segmentos");
-        List<SegmentoClienteResponse> segmentos = segmentoClienteRepository.findAll().stream()
+        List<SegmentoClienteResponse> segmentos = segmentoClienteRepository.buscarTodos().stream()
                 .map((s) -> SegmentoClienteResponse.fromEntity(s))
                 .toList();
         log.info("Consulta finalizada - {} segmentos encontrados", segmentos.size());
@@ -50,7 +50,7 @@ public class SegmentoClienteService {
 
     public SegmentoClienteResponse buscarPorNome(String nome) {
         log.info("Consultando banco de dados - buscando segmento por nome '{}'", nome);
-        SegmentoCliente segmento = segmentoClienteRepository.findByNomeIgnoreCase(nome).orElseThrow(
+        SegmentoCliente segmento = segmentoClienteRepository.buscarPorNome(nome).orElseThrow(
             () -> new SegmentoNaoEncontradoException()
         );
         log.info("Consulta finalizada - segmento '{}' encontrado", nome);
@@ -62,13 +62,13 @@ public class SegmentoClienteService {
         SegmentoCliente segmento = buscarPorId(id);
 
         log.info("Consultando banco de dados - excluindo segmento id={}", id);
-        segmentoClienteRepository.delete(segmento);
+        segmentoClienteRepository.remover(segmento);
         log.info("Consulta finalizada - segmento id={} excluído", id);
     }
 
     public SegmentoCliente buscarPorId(Long id) {
         log.info("Consultando banco de dados - buscando segmento id={}", id);
-        SegmentoCliente segmento = segmentoClienteRepository.findById(id).orElseThrow(
+        SegmentoCliente segmento = segmentoClienteRepository.buscarPorId(id).orElseThrow(
             () -> new SegmentoNaoEncontradoException()
         );
         log.info("Consulta finalizada - segmento id={} encontrado", id);

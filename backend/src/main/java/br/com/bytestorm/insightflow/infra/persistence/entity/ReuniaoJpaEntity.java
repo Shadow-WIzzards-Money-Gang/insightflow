@@ -1,0 +1,50 @@
+package br.com.bytestorm.insightflow.infra.persistence.entity;
+
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Entity
+@Table(name = "reunioes")
+public class ReuniaoJpaEntity extends BaseJpaEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Lob
+    @Column(name = "transcricao_bruta")
+    private String transcricaoBruta;
+
+    @Column(name = "hash_transcricao", nullable = false, unique = true)
+    private String hashTranscricao;
+
+    @Column(name = "data_reuniao")
+    private LocalDateTime dataReuniao;
+
+    @Column(name = "duracao")
+    private LocalTime duracao;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "segmento_cliente_id")
+    private SegmentoClienteJpaEntity segmentoCliente;
+
+}

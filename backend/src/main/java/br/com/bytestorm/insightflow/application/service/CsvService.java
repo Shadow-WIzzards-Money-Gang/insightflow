@@ -12,11 +12,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import br.com.bytestorm.insightflow.application.dto.response.AnaliseCsvRow;
+import br.com.bytestorm.insightflow.domain.vo.AnaliseExportacao;
 
 /**
- * Mecanica de geracao de CSV. Nao conhece o dominio: recebe o cabecalho + as
- * linhas ja como texto e devolve o conteudo do arquivo.
+ * Mecanica de geracao de CSV: recebe o cabecalho + as linhas ja como texto e
+ * devolve o conteudo do arquivo.
  *
  * Formato voltado para o Excel pt-BR: separador ';' e UTF-8 com BOM.
  */
@@ -51,7 +51,7 @@ public class CsvService {
         return writer.toString();
     }
 
-    public List<String> montarLinhaCsv(AnaliseCsvRow row) {
+    public List<String> montarLinhaCsv(AnaliseExportacao row) {
         return Arrays.asList(
             String.valueOf(row.id()),
             row.assunto(),

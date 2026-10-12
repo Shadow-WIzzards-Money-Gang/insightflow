@@ -1,32 +1,43 @@
 package br.com.bytestorm.insightflow.domain.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import br.com.bytestorm.insightflow.domain.exceptions.erro.RegraDeNegocioException;
 
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@Entity
-@Table(name = "produtos_totvs")
-public class ProdutoTotvs extends BaseEntity {
+public class ProdutoTotvs {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private final Long id;
+    private final String nome;
+    private final String categoria;
 
-    @Column(nullable = false, unique = true)
-    private String nome;
+    private ProdutoTotvs(Long id, String nome, String categoria) {
+        this.id = id;
+        this.nome = nome;
+        this.categoria = categoria;
+    }
 
-    @Column(nullable = false)
-    private String categoria;
+    public static ProdutoTotvs novo(String nome, String categoria) {
+        if (nome == null || nome.isBlank()) {
+            throw new RegraDeNegocioException("O nome do produto é obrigatório.");
+        }
+        if (categoria == null || categoria.isBlank()) {
+            throw new RegraDeNegocioException("A categoria do produto é obrigatória.");
+        }
+        return new ProdutoTotvs(null, nome, categoria);
+    }
 
+    /** Remonta um produto ja persistido, sem revalidar as regras de criacao. */
+    public static ProdutoTotvs reconstituir(Long id, String nome, String categoria) {
+        return new ProdutoTotvs(id, nome, categoria);
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public String getCategoria() {
+        return categoria;
+    }
 }

@@ -11,9 +11,6 @@ public record ProdutoTotvsRequest(
 ) {
 
     public ProdutoTotvs toEntity() {
-        return ProdutoTotvs.builder()
-                .nome(this.nome)
-                .categoria(this.categoria)
-                .build();
+        return ProdutoTotvs.novo(this.nome, this.categoria);
     }
 }

@@ -1,29 +1,34 @@
 package br.com.bytestorm.insightflow.domain.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import br.com.bytestorm.insightflow.domain.exceptions.erro.RegraDeNegocioException;
 
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@Entity
-@Table(name = "segmentos_clientes")
-public class SegmentoCliente extends BaseEntity {
+public class SegmentoCliente {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private final Long id;
+    private final String nome;
 
-    @Column(nullable = false, unique = true)
-    private String nome;
+    private SegmentoCliente(Long id, String nome) {
+        this.id = id;
+        this.nome = nome;
+    }
 
+    public static SegmentoCliente novo(String nome) {
+        if (nome == null || nome.isBlank()) {
+            throw new RegraDeNegocioException("O nome do segmento de cliente é obrigatório.");
+        }
+        return new SegmentoCliente(null, nome);
+    }
+
+    /** Remonta um segmento ja persistido, sem revalidar as regras de criacao. */
+    public static SegmentoCliente reconstituir(Long id, String nome) {
+        return new SegmentoCliente(id, nome);
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getNome() {
+        return nome;
+    }
 }
