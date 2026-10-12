@@ -10,11 +10,12 @@ import org.springframework.stereotype.Service;
 
 import br.com.bytestorm.insightflow.application.dto.request.AnaliseRequest;
 import br.com.bytestorm.insightflow.application.dto.response.ReuniaoResponse;
+import br.com.bytestorm.insightflow.application.mapper.PaginaMapper;
 import br.com.bytestorm.insightflow.domain.entity.Reuniao;
 import br.com.bytestorm.insightflow.domain.entity.SegmentoCliente;
 import br.com.bytestorm.insightflow.domain.exceptions.reuniao.ReuniaoNaoEncontradaException;
-import br.com.bytestorm.insightflow.helpers.Helpers;
-import br.com.bytestorm.insightflow.infra.repository.ReuniaoRepository;
+import br.com.bytestorm.insightflow.domain.repository.ReuniaoRepository;
+import br.com.bytestorm.insightflow.domain.vo.HashTranscricao;
 
 @Service
 public class ReuniaoService {
@@ -29,20 +30,20 @@ public class ReuniaoService {
         this.segmentoClienteService = segmentoClienteService;
     }
 
-    public Reuniao cadastrarReuniao(AnaliseRequest request, String hashTranscricao) {
+    public Reuniao cadastrarReuniao(AnaliseRequest request) {
         SegmentoCliente segmentoCliente = segmentoClienteService.buscarPorId(request.segmentoClienteId());
-        Reuniao reuniao = request.toEntity(segmentoCliente, hashTranscricao);
+        Reuniao reuniao = request.toEntity(segmentoCliente);
 
         log.info("Consultando banco de dados - salvando reunião");
-        Reuniao reuniaoSalva = this.reuniaoRepository.save(reuniao);
+        Reuniao reuniaoSalva = this.reuniaoRepository.salvar(reuniao);
         log.info("Consulta finalizada - reunião id={} salva", reuniaoSalva.getId());
 
         return reuniaoSalva;
     }
 
-    public Optional<Reuniao> buscarPorHashTranscricao(String hashTranscricao) {
+    public Optional<Reuniao> buscarPorHashTranscricao(HashTranscricao hashTranscricao) {
         log.info("Consultando banco de dados - buscando reunião por hash de transcrição");
-        Optional<Reuniao> reuniao = this.reuniaoRepository.findByHashTranscricao(hashTranscricao);
+        Optional<Reuniao> reuniao = this.reuniaoRepository.buscarPorHashTranscricao(hashTranscricao);
         log.info("Consulta finalizada - reunião existente: {}", reuniao.isPresent());
 
         return reuniao;
@@ -50,8 +51,11 @@ public class ReuniaoService {
 
     public Page<ReuniaoResponse> buscarReunioes(Pageable pageable) {
         log.info("Consultando banco de dados - buscando reuniões (page={}, size={})", pageable.getPageNumber(), pageable.getPageSize());
-        Page<ReuniaoResponse> reunioes = this.reuniaoRepository.findAll(pageable)
-                .map((r) -> Helpers.resumirReuniao(r));
+        Page<ReuniaoResponse> reunioes = PaginaMapper.toPage(
+            this.reuniaoRepository.buscarTodas(PaginaMapper.toPaginacao(pageable))
+                .mapear((r) -> ReuniaoResponse.resumida(r)),
+            pageable
+        );
         log.info("Consulta finalizada - {} reuniões encontradas", reunioes.getTotalElements());
 
         return reunioes;
@@ -59,7 +63,7 @@ public class ReuniaoService {
 
     public ReuniaoResponse buscarReuniaoPorId(Long id) {
         log.info("Consultando banco de dados - buscando reunião id={}", id);
-        ReuniaoResponse reuniao = this.reuniaoRepository.findById(id)
+        ReuniaoResponse reuniao = this.reuniaoRepository.buscarPorId(id)
             .map(r -> ReuniaoResponse.fromEntity(r))
             .orElseThrow(() -> new ReuniaoNaoEncontradaException());
         log.info("Consulta finalizada - reunião id={} encontrada", id);

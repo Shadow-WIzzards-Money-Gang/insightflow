@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import br.com.bytestorm.insightflow.domain.enums.RiscoCancelamento;
 import br.com.bytestorm.insightflow.domain.enums.SentimentoReuniao;
+import br.com.bytestorm.insightflow.domain.vo.AnaliseResumo;
 
 /**
  * Projecao enxuta usada na listagem paginada de analises (GET /api/analises).
@@ -20,6 +21,18 @@ public record AnaliseListaResponse(
     String motivoCancelamento,
     ReuniaoResumoResponse reuniao
 ) {
+
+    public static AnaliseListaResponse from(AnaliseResumo resumo) {
+        return new AnaliseListaResponse(
+            resumo.id(),
+            resumo.assunto(),
+            resumo.nota(),
+            resumo.sentimentoReuniao(),
+            resumo.riscoCancelamento(),
+            resumo.motivoCancelamento(),
+            new ReuniaoResumoResponse(resumo.dataReuniao())
+        );
+    }
 
     public record ReuniaoResumoResponse(LocalDateTime dataReuniao) {
     }

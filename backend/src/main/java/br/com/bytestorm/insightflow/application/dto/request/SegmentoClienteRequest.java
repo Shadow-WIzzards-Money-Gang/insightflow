@@ -14,9 +14,7 @@ public record SegmentoClienteRequest(
     }
 
     public SegmentoCliente toEntity() {
-        return SegmentoCliente.builder()
-                .nome(this.nome)
-                .build();
+        return SegmentoCliente.novo(this.nome);
     }
 
 }

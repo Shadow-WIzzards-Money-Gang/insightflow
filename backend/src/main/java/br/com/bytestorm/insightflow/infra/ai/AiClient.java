@@ -9,13 +9,14 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 
-import br.com.bytestorm.insightflow.application.dto.ia.AnaliseIAResult;
 import br.com.bytestorm.insightflow.domain.exceptions.ia.IAIndisponivelException;
 import br.com.bytestorm.insightflow.domain.exceptions.ia.RespostaIAInvalidaException;
+import br.com.bytestorm.insightflow.domain.gateway.AnalisadorReuniaoGateway;
+import br.com.bytestorm.insightflow.domain.vo.ResultadoAnaliseIA;
 import tools.jackson.core.JacksonException;
 
 @Component
-public class AiClient {
+public class AiClient implements AnalisadorReuniaoGateway {
 
     private final ChatClient chatClient;
     private final String systemInstruction;
@@ -26,15 +27,16 @@ public class AiClient {
         this.systemInstruction = StreamUtils.copyToString(systemInstructionResource.getInputStream(), StandardCharsets.UTF_8);
     }
 
-    public AnaliseIAResult analisarReuniao(String transcricaoBruta, String produtosDisponiveis) {
-        AnaliseIAResult resultado;
+    @Override
+    public ResultadoAnaliseIA analisar(String transcricao, String produtosDisponiveis) {
+        ResultadoAnaliseIA resultado;
 
         try {
             resultado = chatClient.prompt()
                     .system(systemInstruction.formatted(produtosDisponiveis))
-                    .user(transcricaoBruta)
+                    .user(transcricao)
                     .call()
-                    .entity(AnaliseIAResult.class);
+                    .entity(ResultadoAnaliseIA.class);
         } catch (RuntimeException e) {
             if (temCausaDeParsing(e)) {
                 throw new RespostaIAInvalidaException(e);
@@ -42,22 +44,11 @@ public class AiClient {
             throw new IAIndisponivelException(e);
         }
 
-        validar(resultado);
-        return resultado;
-    }
-
-    private void validar(AnaliseIAResult r) {
-        if (r == null
-                || isBlank(r.assunto())
-                || isBlank(r.sentimentoReuniao())
-                || isBlank(r.riscoCancelamento())
-                || isBlank(r.produtoTotvsNome())
-                || r.nota() == null) {
+        if (resultado == null) {
             throw new RespostaIAInvalidaException("A IA retornou uma analise incompleta.");
         }
-        if (r.nota() < 0 || r.nota() > 10) {
-            throw new RespostaIAInvalidaException("A IA retornou uma nota fora da faixa de 0 a 10: " + r.nota());
-        }
+        resultado.validar();
+        return resultado;
     }
 
     /** Falha ao desserializar a resposta do modelo (JSON invalido ou fora do formato esperado). */
@@ -68,10 +59,6 @@ public class AiClient {
             }
         }
         return false;
-    }
-
-    private boolean isBlank(String s) {
-        return s == null || s.isBlank();
     }
 
 }
